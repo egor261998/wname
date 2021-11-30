@@ -1,2 +1,0 @@
-C:\all\Work\wname\output\x64\wname.lib.lastcodeanalysissucceeded
-C:\all\Work\wname\output\wname_tmp\NativeCodeAnalysis.read.1.tlog
