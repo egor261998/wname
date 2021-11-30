@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="wname.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="logger\Ilogger.h">
+      <Filter>logger</Filter>
+    </ClInclude>
+    <ClInclude Include="logger\EMessageType.h">
+      <Filter>logger</Filter>
+    </ClInclude>
+    <ClInclude Include="logger\CLoggerToFile.h">
+      <Filter>logger</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="logger">
+      <UniqueIdentifier>{643297cb-e94f-4efc-b6b6-dd6c8e60976e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="logger\Ilogger.cpp">
+      <Filter>logger</Filter>
+    </ClCompile>
+    <ClCompile Include="logger\CLoggerToFile.cpp">
+      <Filter>logger</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
