@@ -309,6 +309,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="handle\CEvent.h" />
+    <ClInclude Include="handle\CHandle.h" />
     <ClInclude Include="logger\CLoggerToFile.h" />
     <ClInclude Include="logger\EMessageType.h" />
     <ClInclude Include="logger\Ilogger.h" />
@@ -316,6 +318,8 @@
     <ClInclude Include="wname.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="handle\CEvent.cpp" />
+    <ClCompile Include="handle\CHandle.cpp" />
     <ClCompile Include="logger\CLoggerToFile.cpp" />
     <ClCompile Include="logger\Ilogger.cpp" />
   </ItemGroup>

@@ -15,3 +15,7 @@
 #include "logger\EMessageType.h"
 #include "logger\Ilogger.h"
 #include "logger\CLoggerToFile.h"
+
+/** מבתוךעû ÿהנא */
+#include "handle/CHandle.h"
+#include "handle/CEvent.h"

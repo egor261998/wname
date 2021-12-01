@@ -11,11 +11,11 @@ using CLoggerToFilePrefix = wname::logger::CLoggerToFile;
 	}
 //==============================================================================
 	void CLoggerToFilePrefix::logWrite(
-		const std::wstring& str) const 
+		const std::wstring& wStr) const
 	{	
 		std::wofstream fileStream(_logPath, std::ios::app);
 
-		fileStream << str;
+		fileStream << wStr;
 		fileStream.close();
 	}
 //==============================================================================

@@ -3,13 +3,13 @@
 _WNAME_BEGIN
 namespace logger {
 	/** лог в файл */
-	class CLoggerToFile : public ILogger
+	class CLoggerToFile final : public ILogger
 	{
 	#pragma region Public_Method
 	public:
 	//==========================================================================
 		/*
-		* конструктор из std::wstring.
+		* конструктор.
 		* @param logPath - путь до файла.
 		*/
 		WNAME CLoggerToFile(
@@ -32,10 +32,10 @@ namespace logger {
 	//==========================================================================
 		/**
 		* логировать сообщение.
-		* @param str - логируемое сообщение.
+		* @param wStr - логируемое сообщение.
 		*/
 		void logWrite(
-			const std::wstring& str) const override;
+			const std::wstring& wStr) const override;
 	//==========================================================================
 	#pragma endregion
 

@@ -12,10 +12,19 @@
     <ClInclude Include="logger\CLoggerToFile.h">
       <Filter>logger</Filter>
     </ClInclude>
+    <ClInclude Include="handle\CHandle.h">
+      <Filter>handle</Filter>
+    </ClInclude>
+    <ClInclude Include="handle\CEvent.h">
+      <Filter>handle</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="logger">
       <UniqueIdentifier>{643297cb-e94f-4efc-b6b6-dd6c8e60976e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="handle">
+      <UniqueIdentifier>{8eece104-e702-493d-a041-d95f6caca77e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -24,6 +33,12 @@
     </ClCompile>
     <ClCompile Include="logger\CLoggerToFile.cpp">
       <Filter>logger</Filter>
+    </ClCompile>
+    <ClCompile Include="handle\CHandle.cpp">
+      <Filter>handle</Filter>
+    </ClCompile>
+    <ClCompile Include="handle\CEvent.cpp">
+      <Filter>handle</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
