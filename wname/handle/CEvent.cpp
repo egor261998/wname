@@ -7,7 +7,7 @@ using CEventPrefix = wname::handle::CEvent;
 		const CEvent& handle) noexcept
 		:CHandle(handle)
 	{
-
+		
 	}
 //==============================================================================
 	CEventPrefix::CEvent(
@@ -44,7 +44,7 @@ using CEventPrefix = wname::handle::CEvent;
 		}
 	}
 //==============================================================================
-	std::error_code CEventPrefix::notify() noexcept
+	std::error_code CEventPrefix::notify() const noexcept
 	{
 		const auto hObject = getHandle();
 
@@ -54,7 +54,7 @@ using CEventPrefix = wname::handle::CEvent;
 	}
 //==============================================================================
 	std::error_code CEventPrefix::wait(
-		const DWORD dwMilliseconds) noexcept
+		const DWORD dwMilliseconds) const noexcept
 	{
 		const auto hObject = getHandle();
 
@@ -63,7 +63,7 @@ using CEventPrefix = wname::handle::CEvent;
 			std::system_category());
 	}
 //==============================================================================
-	std::error_code CEventPrefix::cancel() noexcept
+	std::error_code CEventPrefix::cancel() const noexcept
 	{
 		const auto hObject = getHandle();
 

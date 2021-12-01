@@ -37,13 +37,13 @@ namespace handle
 		* дать уведомление.
 		* @return - код ошибки.
 		*/
-		WNAME std::error_code notify() noexcept;
+		WNAME std::error_code notify() const noexcept;
 	//==========================================================================
 		template<class... Args>
 		WNAME static std::error_code notify(
 			const bool bWaitAll,
 			const DWORD dwMilliseconds,
-			Args&... args)
+			Args&... args) 
 		{
 			std::vector<CEvent*> vecEvents({ &args... });
 			std::vector<HANDLE> vecHandles;
@@ -69,13 +69,13 @@ namespace handle
 		* @return - код ошибки.
 		*/
 		WNAME std::error_code wait(
-			const DWORD dwMilliseconds = INFINITE) noexcept;
+			const DWORD dwMilliseconds = INFINITE) const noexcept;
 	//==========================================================================
 		/**
 		* отменить уведомление.
 		* @return - код ошибки.
 		*/
-		WNAME std::error_code cancel() noexcept;
+		WNAME std::error_code cancel() const noexcept;
 	//==========================================================================
 		/**
 		* оператор копирования описателя.
