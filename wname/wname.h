@@ -17,5 +17,11 @@
 #include "logger\CLoggerToFile.h"
 
 /** объекты ядра */
-#include "handle/CHandle.h"
-#include "handle/CEvent.h"
+#include "handle\CHandle.h"
+#include "handle\CEvent.h"
+
+/** разное */
+#include "misc\CThreadTls.h"
+#include "misc\CInterlockedList.h"
+#include "misc\CCounter.h"
+#include "misc\CCounterScoped.h"

@@ -6,6 +6,8 @@
 #include <string>
 #include <filesystem>
 #include <mutex>
+#include <map>
+#include <cassert>
 
 /** функционал проекта */
 #include "wname.h"

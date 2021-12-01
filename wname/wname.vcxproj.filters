@@ -18,6 +18,18 @@
     <ClInclude Include="handle\CEvent.h">
       <Filter>handle</Filter>
     </ClInclude>
+    <ClInclude Include="misc\CThreadTls.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="misc\CInterlockedList.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="misc\CCounter.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="misc\CCounterScoped.h">
+      <Filter>misc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="logger">
@@ -25,6 +37,9 @@
     </Filter>
     <Filter Include="handle">
       <UniqueIdentifier>{8eece104-e702-493d-a041-d95f6caca77e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="misc">
+      <UniqueIdentifier>{39dc5723-f78f-4f0e-a58e-d506c1c68e2a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -39,6 +54,12 @@
     </ClCompile>
     <ClCompile Include="handle\CEvent.cpp">
       <Filter>handle</Filter>
+    </ClCompile>
+    <ClCompile Include="misc\CCounter.cpp">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="misc\CCounterScoped.cpp">
+      <Filter>misc</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
