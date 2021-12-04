@@ -5,7 +5,7 @@ using CCounterPrefix = wname::misc::CCounter;
 //==============================================================================
 	void CCounterPrefix::initialize()
 	{
-		std::lock_guard lock(_mtxCounter);
+		cs::CCriticalSectionScoped lock(_csCounter);
 
 		if (_isCounterInitialize)
 		{
@@ -19,16 +19,16 @@ using CCounterPrefix = wname::misc::CCounter;
 		_isCounterInitialize = true;
 	}
 //==============================================================================
-	bool CCounterPrefix::isInitialize()
+	bool CCounterPrefix::isInitialize() noexcept
 	{
-		std::lock_guard lock(_mtxCounter);
+		cs::CCriticalSectionScoped lock(_csCounter);
 
 		return _isCounterInitialize;
 	}
 //==============================================================================
-	bool CCounterPrefix::startOperation()
+	bool CCounterPrefix::startOperation() noexcept
 	{
-		std::lock_guard lock(_mtxCounter);
+		cs::CCriticalSectionScoped lock(_csCounter);
 
 		if (_isCounterInitialize)
 			_nCounterCount++;
@@ -36,31 +36,42 @@ using CCounterPrefix = wname::misc::CCounter;
 		return _isCounterInitialize;
 	}
 //==============================================================================
-	bool CCounterPrefix::endOperation()
+	bool CCounterPrefix::endOperation() noexcept
 	{
 		bool bResultFree = false;
 		bool isDelete = false;
 		{
 			/** отдельная область видимости для синхронизации */
-			std::lock_guard lock(_mtxCounter);
+			cs::CCriticalSectionScoped lock(_csCounter);
 
 			/** проверка на наличие операций */
 			assert(_nCounterCount > 0);
 			_nCounterCount--;
 		
-			/** проверка произвольного ожидания */
-			if (_counterWait.size() > 0)
+			/** проверка произвольного ожидания */		
+			if (!_counterWait.empty())
 			{
-				if (const auto it = _counterWait.find(_nCounterCount); it != _counterWait.end())
+				try
 				{
-					for (auto ev : it->second)
+					if (const auto& it = _counterWait.find(_nCounterCount);
+						it != _counterWait.end())
 					{
-						ev.notify();
-					}
+						for (const auto& ev : it->second)
+						{
+							ev.notify();
+						}
 
-					_counterWait.erase(it);
+						_counterWait.erase(it);
+					}
 				}
-			}
+				catch (const std::exception& ex)
+				{
+					UNREFERENCED_PARAMETER(ex);
+
+					/** смерть */
+					assert(false);
+				}
+			}	
 
 			/** завершение последней асинхронной операции */
 			bResultFree =
@@ -81,11 +92,11 @@ using CCounterPrefix = wname::misc::CCounter;
 	}
 //==============================================================================
 	bool CCounterPrefix::checkOperation(
-		const uint64_t nCount)
+		const uint64_t nCount) noexcept
 	{
 		bool isLast = false;
 		{
-			std::lock_guard lock(_mtxCounter);
+			cs::CCriticalSectionScoped lock(_csCounter);
 			isLast = _nCounterCount > nCount;
 		}
 
@@ -99,14 +110,13 @@ using CCounterPrefix = wname::misc::CCounter;
 
 		{
 			/** отдельная область видимости для синхронизации */
-			std::lock_guard lock(_mtxCounter);
+			cs::CCriticalSectionScoped lock(_csCounter);
 
 			/** ожидание не нужно */
 			if (_nCounterCount <= nCount)
 				return;
 
 			/** создаем событие */
-
 			ev.initialize();
 
 			std::list<handle::CEvent>* pList = nullptr;
@@ -134,32 +144,19 @@ using CCounterPrefix = wname::misc::CCounter;
 	{
 		bool isNeedWait = false;
 
-		try
-		{
-			#pragma warning(disable: 26447)
+		/** отдельная область видимости для синхронизации */
+		cs::CCriticalSectionScoped lock(_csCounter);
 
-			/** отдельная область видимости для синхронизации */
-			std::lock_guard lock(_mtxCounter);
-
-			_isCounterInitialize = false;
-			isNeedWait = _nCounterCount ? true : false;
-		}
-		catch (const std::exception& ex)
-		{
-			UNREFERENCED_PARAMETER(ex);
-
-			/** тут смерть */
-			assert(false);
-		}
+		_isCounterInitialize = false;
+		isNeedWait = _nCounterCount ? true : false;
 
 		if (isNeedWait)
 			_eventCounterFree.wait();
 	}
 //==============================================================================
-	void CCounterPrefix::deleteAfterEndOperation()
+	void CCounterPrefix::deleteAfterEndOperation() noexcept
 	{
-		/** отдельная область видимости для синхронизации */
-		std::lock_guard lock(_mtxCounter);
+		cs::CCriticalSectionScoped lock(_csCounter);
 
 		_isDeleteAfterEndOperation = true;
 	}

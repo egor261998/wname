@@ -14,7 +14,7 @@ namespace misc
 		* @param counter - счетчик операций.
 		*/
 		WNAME CCounterScoped(
-			CCounter& counter);
+			CCounter& counter) noexcept;
 	//==========================================================================
 		/**
 		* успех старта счетчика.

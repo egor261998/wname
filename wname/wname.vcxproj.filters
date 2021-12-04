@@ -30,6 +30,27 @@
     <ClInclude Include="misc\CCounterScoped.h">
       <Filter>misc</Filter>
     </ClInclude>
+    <ClInclude Include="critical section\CCriticalSection.h">
+      <Filter>critical section</Filter>
+    </ClInclude>
+    <ClInclude Include="critical section\CCriticalSectionScoped.h">
+      <Filter>critical section</Filter>
+    </ClInclude>
+    <ClInclude Include="io\iocp\CIocp.h">
+      <Filter>io\iocp</Filter>
+    </ClInclude>
+    <ClInclude Include="io\iocp\CAsyncOperation.h">
+      <Filter>io\iocp</Filter>
+    </ClInclude>
+    <ClInclude Include="io\iocp\CThreadPoolWorker.h">
+      <Filter>io\iocp</Filter>
+    </ClInclude>
+    <ClInclude Include="io\iocp\CThreadPool.h">
+      <Filter>io\iocp</Filter>
+    </ClInclude>
+    <ClInclude Include="io\CAsyncIo.h">
+      <Filter>io</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="logger">
@@ -40,6 +61,15 @@
     </Filter>
     <Filter Include="misc">
       <UniqueIdentifier>{39dc5723-f78f-4f0e-a58e-d506c1c68e2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="critical section">
+      <UniqueIdentifier>{46c8b5a7-0323-4bff-aed0-5fe75dbada54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="io">
+      <UniqueIdentifier>{cd14400f-e590-4b05-a401-02e188301780}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="io\iocp">
+      <UniqueIdentifier>{6be5dd23-6afe-40d2-bbc2-98d8acac13e5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +90,27 @@
     </ClCompile>
     <ClCompile Include="misc\CCounterScoped.cpp">
       <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="critical section\CCriticalSection.cpp">
+      <Filter>critical section</Filter>
+    </ClCompile>
+    <ClCompile Include="critical section\CCriticalSectionScoped.cpp">
+      <Filter>critical section</Filter>
+    </ClCompile>
+    <ClCompile Include="io\iocp\CAsyncOperation.cpp">
+      <Filter>io\iocp</Filter>
+    </ClCompile>
+    <ClCompile Include="io\iocp\CThreadPoolWorker.cpp">
+      <Filter>io\iocp</Filter>
+    </ClCompile>
+    <ClCompile Include="io\iocp\CThreadPool.cpp">
+      <Filter>io\iocp</Filter>
+    </ClCompile>
+    <ClCompile Include="io\iocp\CIocp.cpp">
+      <Filter>io\iocp</Filter>
+    </ClCompile>
+    <ClCompile Include="io\CAsyncIo.cpp">
+      <Filter>io</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

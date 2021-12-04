@@ -12,7 +12,7 @@ namespace misc
 		/**
 		* конструктор.
 		*/
-		WNAME CCounter() noexcept = default;
+		WNAME CCounter() noexcept { };
 	//==========================================================================
 		/**
 		* инициализация счетчика операций.
@@ -22,19 +22,19 @@ namespace misc
 		/**
 		* инициализирован ли счетчик операций.
 		*/
-		WNAME bool isInitialize();
+		WNAME bool isInitialize() noexcept;
 	//==========================================================================
 		/**
 		* старт новой операции.
 		* @return - успех старта операции.
 		*/
-		WNAME bool startOperation();
+		WNAME bool startOperation() noexcept;
 	//==========================================================================
 		/**
 		* окончание операции.
 		* @return - возможность завершения.
 		*/
-		WNAME bool endOperation();
+		WNAME bool endOperation() noexcept;
 	//==========================================================================
 		/**
 		* проверка количества операций.
@@ -42,7 +42,7 @@ namespace misc
 		* @return - TRUE если операций в обработке больше чем указано в параметре.
 		*/
 		WNAME bool checkOperation(
-			const uint64_t nCount = 0);
+			const uint64_t nCount = 0) noexcept;
 	//==========================================================================
 		/**
 		* ожидание операций.
@@ -59,7 +59,7 @@ namespace misc
 		/**
 		* удаление объекта после того как отработает последняя операция.
 		*/
-		WNAME void deleteAfterEndOperation();
+		WNAME void deleteAfterEndOperation() noexcept;
 	//==========================================================================
 		/**
 		* деструктор.
@@ -73,15 +73,15 @@ namespace misc
 	//==========================================================================
 	#pragma endregion
 
-	#pragma region Private_Data
-	private:
+	#pragma region Protected_Data
+	protected:
 	//==========================================================================
 		/** состояние */
 		bool _isCounterInitialize = false;
 		bool _isDeleteAfterEndOperation = false;
 
 		/** произвольное ожидание операции */
-		std::map<uint64_t, std::list<handle::CEvent>> _counterWait;
+		std::unordered_map<uint64_t, std::list<handle::CEvent>> _counterWait;
 
 		/** количество выполняемых асинхронных операций */
 		uint64_t _nCounterCount = 0;
@@ -90,7 +90,7 @@ namespace misc
 		handle::CEvent _eventCounterFree;
 
 		/** синхронизация счетчика */
-		std::recursive_mutex _mtxCounter;
+		cs::CCriticalSection _csCounter;
 	//==========================================================================
 	#pragma endregion
 	};

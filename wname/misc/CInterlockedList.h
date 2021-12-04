@@ -1,7 +1,7 @@
 #pragma once
 
 _WNAME_BEGIN
-namespace handle
+namespace misc
 {
 	/** элемент потокобезопасного списка */
 	class CInterlockedItem : public SLIST_ENTRY {};
