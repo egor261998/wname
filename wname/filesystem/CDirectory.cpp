@@ -213,7 +213,7 @@ std::error_code CDirectoryPrefix::enumDirectory()
 			do
 			{
 				try
-				{
+				{		
 					std::wstring path = directoryPath;
 					path.append(L"\\");
 					path.append(&ffd.cFileName[0]);
@@ -226,6 +226,12 @@ std::error_code CDirectoryPrefix::enumDirectory()
 							/** эти элементы пропускаем,
 								иначе отсканируем всю систему
 								еще и упремся в рекурсию*/
+							continue;
+						}
+						else if (ffd.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
+						{
+							/** системная папка, не добавляем в список */
+							continue;
 						}
 						else
 						{
@@ -236,7 +242,7 @@ std::error_code CDirectoryPrefix::enumDirectory()
 					else
 					{
 						/** нашелся файл */
-						 addFileToDirectory(path);
+						addFileToDirectory(path);
 					}
 				}
 				catch (const std::exception& ex)
@@ -271,7 +277,8 @@ void CDirectoryPrefix::addFileToDirectory(
 
 		BY_HANDLE_FILE_INFORMATION info = {};
 		HANDLE hFile = CreateFile(
-			filePath.c_str(), 0, 0, NULL, OPEN_EXISTING, 0, NULL);
+			filePath.c_str(), 
+			0, 0, NULL, OPEN_EXISTING, 0, NULL);
 		if (hFile == INVALID_HANDLE_VALUE)
 			throw std::runtime_error("hFile == INVALID_HANDLE_VALUE");
 
@@ -310,17 +317,18 @@ void CDirectoryPrefix::addDirectoryToDirectory(
 			throw std::logic_error("Directory is not open");
 
 		BY_HANDLE_FILE_INFORMATION info = {};
-		HANDLE hFile = CreateFile(
-			directoryPath.c_str(), 0, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
-		if (hFile == INVALID_HANDLE_VALUE)
-			throw std::runtime_error("hFile == INVALID_HANDLE_VALUE");
+		HANDLE hDirectory = CreateFile(
+			directoryPath.c_str(), 
+			0, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+		if (hDirectory == INVALID_HANDLE_VALUE)
+			throw std::runtime_error("hDirectory == INVALID_HANDLE_VALUE");
 
-		if (!GetFileInformationByHandle(hFile, &info))
+		if (!GetFileInformationByHandle(hDirectory, &info))
 		{
-			CloseHandle(hFile);
+			CloseHandle(hDirectory);
 			throw std::runtime_error("GetFileInformationByHandle is Failed");
 		}
-		CloseHandle(hFile);
+		CloseHandle(hDirectory);
 
 		LARGE_INTEGER li = {};
 		li.LowPart = info.nFileIndexLow;
@@ -340,8 +348,8 @@ void CDirectoryPrefix::addDirectoryToDirectory(
 
 		const auto ec = pDirectory->createDirectory(
 			_isSubOpenDirectory, _isNotify,
-			GENERIC_READ | GENERIC_WRITE,
-			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			GENERIC_READ,
+			FILE_SHARE_READ | FILE_SHARE_DELETE,
 			OPEN_ALWAYS);
 
 		if (ec)
