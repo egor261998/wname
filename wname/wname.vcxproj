@@ -311,6 +311,8 @@
   <ItemGroup>
     <ClInclude Include="critical section\CCriticalSection.h" />
     <ClInclude Include="critical section\CCriticalSectionScoped.h" />
+    <ClInclude Include="filesystem\CDirectory.h" />
+    <ClInclude Include="filesystem\CFile.h" />
     <ClInclude Include="handle\CEvent.h" />
     <ClInclude Include="handle\CHandle.h" />
     <ClInclude Include="io\CAsyncIo.h" />
@@ -331,6 +333,8 @@
   <ItemGroup>
     <ClCompile Include="critical section\CCriticalSection.cpp" />
     <ClCompile Include="critical section\CCriticalSectionScoped.cpp" />
+    <ClCompile Include="filesystem\CDirectory.cpp" />
+    <ClCompile Include="filesystem\CFile.cpp" />
     <ClCompile Include="handle\CEvent.cpp" />
     <ClCompile Include="handle\CHandle.cpp" />
     <ClCompile Include="io\CAsyncIo.cpp" />

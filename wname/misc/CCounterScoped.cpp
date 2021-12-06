@@ -3,26 +3,26 @@
 using CCounterScopedPrefix = wname::misc::CCounterScoped;
 
 //==============================================================================
-	CCounterScopedPrefix::CCounterScoped(
-		CCounter& counter) noexcept
-		: _counter(counter)
-	{
-		_bIsStartOperation = _counter.startOperation();
-	}
+CCounterScopedPrefix::CCounterScoped(
+	CCounter& counter) noexcept
+	: _counter(counter)
+{
+	_bIsStartOperation = _counter.startOperation();
+}
 //==============================================================================
-	bool CCounterScopedPrefix::isStartOperation() const noexcept
-	{
-		return _bIsStartOperation;
-	}
+bool CCounterScopedPrefix::isStartOperation() const noexcept
+{
+	return _bIsStartOperation;
+}
 //==============================================================================
-	void CCounterScopedPrefix::release() noexcept
-	{
-		_bIsStartOperation = false;
-	}
+void CCounterScopedPrefix::release() noexcept
+{
+	_bIsStartOperation = false;
+}
 //==============================================================================
-	CCounterScopedPrefix::~CCounterScoped()
-	{
-		if (_bIsStartOperation)
-			_counter.endOperation();		
-	}
+CCounterScopedPrefix::~CCounterScoped()
+{
+	if (_bIsStartOperation)
+		_counter.endOperation();		
+}
 //==============================================================================

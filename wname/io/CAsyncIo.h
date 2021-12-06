@@ -3,14 +3,14 @@
 _WNAME_BEGIN
 namespace io
 {
-/** размеры буферов в КБ */
-#define BUFFER_1K 1024
-#define BUFFER_2K 2048
-#define BUFFER_4K 4096
-#define BUFFER_8K 8192
-#define BUFFER_16K 16384
-#define BUFFER_32K 32768
-#define BUFFER_64K 65536
+	/** размеры буферов в КБ */
+	#define BUFFER_1K 1024
+	#define BUFFER_2K 2048
+	#define BUFFER_4K 4096
+	#define BUFFER_8K 8192
+	#define BUFFER_16K 16384
+	#define BUFFER_32K 32768
+	#define BUFFER_64K 65536
 
 	/** асинхронный ввод/вывод */
 	class CAsyncIo : protected misc::CCounter
@@ -143,21 +143,21 @@ namespace io
 		* обработчик события завершения асинхронного чтения.
 		* @param pAsyncOperation - асинхронная операция.
 		*/
-		static void asyncReadCompilteHandler(
+		WNAME static void asyncReadCompilteHandler(
 			iocp::CAsyncOperation* const pAsyncOperation) noexcept;
 	//==========================================================================
 		/**
 		* обработчик события завершения асинхронной записи.
 		* @param pAsyncOperation - асинхронная операция.
 		*/
-		static void asyncWriteCompilteHandler(
+		WNAME static void asyncWriteCompilteHandler(
 			iocp::CAsyncOperation* const pAsyncOperation) noexcept;
 	//==========================================================================
 		/**
 		* обработчик события завершения асинхронной операции.
 		* @param pAsyncOperation - асинхронная операция.
 		*/
-		static void asyncCompilteHandler(
+		WNAME static void asyncCompilteHandler(
 			iocp::CAsyncOperation* const pAsyncOperation) noexcept;
 	//==========================================================================
 	#pragma endregion

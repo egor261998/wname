@@ -11,6 +11,16 @@
 #define _WNAME_BEGIN namespace wname {
 #define _WNAME_END }
 
+/** стандартное подключение */
+#include <windows.h>
+#include <fstream>
+#include <string>
+#include <filesystem>
+#include <unordered_map>
+#include <cassert>
+#include <thread>
+#include <Shlwapi.h>
+
 /** логирование */
 #include "logger\EMessageType.h"
 #include "logger\Ilogger.h"
@@ -36,3 +46,7 @@
 #include "io\iocp\CThreadPoolWorker.h"
 #include "io\iocp\CAsyncOperation.h"
 #include "io\CAsyncIo.h"
+
+/** взаимодействие с файловой системой */
+#include "filesystem\CFile.h"
+#include "filesystem\CDirectory.h"

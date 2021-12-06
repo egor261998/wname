@@ -51,6 +51,12 @@
     <ClInclude Include="io\CAsyncIo.h">
       <Filter>io</Filter>
     </ClInclude>
+    <ClInclude Include="filesystem\CFile.h">
+      <Filter>filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="filesystem\CDirectory.h">
+      <Filter>filesystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="logger">
@@ -70,6 +76,9 @@
     </Filter>
     <Filter Include="io\iocp">
       <UniqueIdentifier>{6be5dd23-6afe-40d2-bbc2-98d8acac13e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="filesystem">
+      <UniqueIdentifier>{7d903948-858f-40b3-a748-ef17b6b9d56e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -111,6 +120,12 @@
     </ClCompile>
     <ClCompile Include="io\CAsyncIo.cpp">
       <Filter>io</Filter>
+    </ClCompile>
+    <ClCompile Include="filesystem\CFile.cpp">
+      <Filter>filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="filesystem\CDirectory.cpp">
+      <Filter>filesystem</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
