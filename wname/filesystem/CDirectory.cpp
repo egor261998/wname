@@ -52,10 +52,10 @@ std::error_code CDirectoryPrefix::createDirectory(
 	dwFlagsAndAttributes |= FILE_FLAG_BACKUP_SEMANTICS;
 	dwFlagsAndAttributes |= FILE_FLAG_OVERLAPPED;
 
-	cs::CCriticalSectionScoped lock(_csCounter);
-
 	if (isInitialize())
 		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+
+	cs::CCriticalSectionScoped lock(_csCounter);
 
 	_isSubOpenDirectory = isSubOpenDirectory;
 	_isNotify = isNotify;
@@ -123,6 +123,7 @@ std::error_code CDirectoryPrefix::createDirectory(
 	}
 	catch (const std::exception& ex)
 	{
+		close();
 		_pIocp->log(logger::EMessageType::critical, ex);
 		throw;
 	}
@@ -144,29 +145,37 @@ std::list<std::filesystem::path>CDirectoryPrefix::getFileList(
 	const bool bSubFile,
 	const std::filesystem::path proximatePath)
 {
-	misc::CCounterScoped counter(*this);
-	if (!counter.isStartOperation())
-		throw std::logic_error("Is not initialize");
-
-	cs::CCriticalSectionScoped lock(_csCounter);
-
-	std::list<std::filesystem::path> listPath;
-
-	for (const auto& [k, v] : _listFile)
+	try
 	{
-		listPath.push_back(v->getPath().lexically_proximate(proximatePath));
-	}
+		misc::CCounterScoped counter(*this);
+		if (!counter.isStartOperation())
+			throw std::logic_error("Directory is not open");
 
-	if (bSubFile)
-	{
-		for (const auto& [k, v] : _listDirectory)
+		cs::CCriticalSectionScoped lock(_csCounter);
+
+		std::list<std::filesystem::path> listPath;
+
+		for (const auto& [k, v] : _listFile)
 		{
-			auto subList = v->getFileList(bSubFile, proximatePath);
-			std::move(subList.begin(), subList.end(), std::back_inserter(listPath));
+			listPath.push_back(v->getPath().lexically_proximate(proximatePath));
 		}
-	}
 
-	return listPath;
+		if (bSubFile)
+		{
+			for (const auto& [k, v] : _listDirectory)
+			{
+				auto subList = v->getFileList(bSubFile, proximatePath);
+				std::move(subList.begin(), subList.end(), std::back_inserter(listPath));
+			}
+		}
+
+		return listPath;
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(logger::EMessageType::critical, ex);
+		throw;
+	}
 }
 //==============================================================================
 std::error_code CDirectoryPrefix::deleteDirectory(
@@ -199,6 +208,8 @@ std::error_code CDirectoryPrefix::enumDirectory()
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
 		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+
+	cs::CCriticalSectionScoped lock(_csCounter);
 
 	try
 	{
@@ -269,6 +280,8 @@ std::error_code CDirectoryPrefix::enumDirectory()
 void CDirectoryPrefix::addFileToDirectory(
 	const std::filesystem::path& filePath)
 {
+	cs::CCriticalSectionScoped lock(_csCounter);
+
 	try
 	{
 		misc::CCounterScoped counter(*this);
@@ -293,8 +306,6 @@ void CDirectoryPrefix::addFileToDirectory(
 		li.LowPart = info.nFileIndexLow;
 		li.HighPart = info.nFileIndexHigh;
 
-		cs::CCriticalSectionScoped lock(_csCounter);
-
 		auto pFile = std::make_shared<CFile>(filePath, _pIocp);
 
 		_listFile[li.QuadPart] = pFile;
@@ -310,6 +321,8 @@ void CDirectoryPrefix::addFileToDirectory(
 void CDirectoryPrefix::addDirectoryToDirectory(
 	const std::filesystem::path& directoryPath)
 {
+	cs::CCriticalSectionScoped lock(_csCounter);
+
 	try
 	{
 		misc::CCounterScoped counter(*this);
@@ -334,7 +347,6 @@ void CDirectoryPrefix::addDirectoryToDirectory(
 		li.LowPart = info.nFileIndexLow;
 		li.HighPart = info.nFileIndexHigh;
 
-		cs::CCriticalSectionScoped lock(_csCounter);
 		if (_listDirectory.find(li.QuadPart) != _listDirectory.end())
 		{
 			/** папка уже есть */
@@ -354,7 +366,7 @@ void CDirectoryPrefix::addDirectoryToDirectory(
 
 		if (ec)
 		{
-			throw std::runtime_error("AddDirectoryToDirectory failed: " + ec.message());
+			throw std::runtime_error("CreateDirectory failed: " + ec.message());
 		}
 
 		_listDirectory[li.QuadPart] = std::move(pDirectory);
@@ -371,8 +383,9 @@ void CDirectoryPrefix::addDirectoryToDirectory(
 void CDirectoryPrefix::removeFileFromDirectory(
 	const UINT64 uId) noexcept
 {
+	#pragma warning(disable: 26472)
 	cs::CCriticalSectionScoped lock(_csCounter);
-
+	
 	const auto count = static_cast<int>(_listFile.erase(uId));
 	changeSubFileCount(-count);
 }
@@ -380,9 +393,10 @@ void CDirectoryPrefix::removeFileFromDirectory(
 void CDirectoryPrefix::removeDirectoryFromDirectory(
 	const UINT64 uId) noexcept
 {
+	#pragma warning(disable: 26472)
 	cs::CCriticalSectionScoped lock(_csCounter);
-
-	const int count = static_cast<int>(_listDirectory.erase(uId));
+	
+	const auto count = static_cast<int>(_listDirectory.erase(uId));
 	changeSubDirectoryCount(-count);
 }
 //==============================================================================
@@ -408,9 +422,12 @@ void CDirectoryPrefix::changeSubDirectoryCount(
 //==============================================================================
 std::error_code CDirectoryPrefix::startNotify()
 {
+	#pragma warning(disable: 26472)
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
 		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+
+	cs::CCriticalSectionScoped lock(_csCounter);
 
 	io::iocp::CAsyncOperation* pAsyncOperation = nullptr;
 
@@ -420,13 +437,12 @@ std::error_code CDirectoryPrefix::startNotify()
 			_pIocp->getAsyncOperation(this, notifyCompilteHandler);
 		assert(pAsyncOperation != nullptr);
 
-		cs::CCriticalSectionScoped lock(_csCounter);
 		if (_bufferNotify.size() != BUFFER_64K)
 		{
 			_bufferNotify.resize(BUFFER_64K);
 		}
 
-		pAsyncOperation->_dwBufferSize = sizeof(FILE_NOTIFY_EXTENDED_INFORMATION);
+		pAsyncOperation->_dwBufferSize = static_cast<DWORD>(_bufferNotify.size());
 		pAsyncOperation->_pBuffer = _bufferNotify.data();
 
 		const auto bRes = ReadDirectoryChangesExW(
@@ -474,6 +490,43 @@ void CDirectoryPrefix::notifyCompilteHandler(
 	assert(pAsyncOperation->_pCompletionRoutineContext != nullptr);
 	const auto& _this = static_cast<CDirectory*>(
 		pAsyncOperation->_pCompletionRoutineContext);
+
+	const auto retryNotify = [](
+		CDirectory* const pDirectory)
+	{
+		if (pDirectory == nullptr)
+			throw std::invalid_argument("pDirectory == nullptr");
+
+		cs::CCriticalSectionScoped lock(pDirectory->_csCounter);
+
+		pDirectory->_listDirectory.clear();
+		pDirectory->_listFile.clear();
+
+		std::error_code ec;
+		auto bIsRetryAgain = false;
+
+		if (ec = pDirectory->startNotify(); ec)
+		{
+			/** ошибка уведомлений */
+			pDirectory->_pIocp->log(
+				logger::EMessageType::warning,
+				L"Error start notify",
+				ec);
+			bIsRetryAgain = pDirectory->notifyErrorCompilteHandler(ec);
+		}
+		else if (ec = pDirectory->enumDirectory(); ec)
+		{
+			/** ошибка получения вложений */
+			pDirectory->_pIocp->log(
+				logger::EMessageType::warning,
+				L"Error enum directory",
+				ec);
+			bIsRetryAgain = pDirectory->notifyErrorCompilteHandler(ec);
+		}
+
+		return bIsRetryAgain;
+	};
+
 	try
 	{
 		if (!pAsyncOperation->_ec && pAsyncOperation->_dwReturnSize != 0)
@@ -500,52 +553,56 @@ void CDirectoryPrefix::notifyCompilteHandler(
 
 		if (pAsyncOperation->_ec)
 		{
-			_this->notifyErrorCompilteHandler(pAsyncOperation->_ec);
 			_this->_pIocp->log(
-				logger::EMessageType::critical,
+				logger::EMessageType::warning,
 				L"Notify error",
 				pAsyncOperation->_ec);
+
+			if (_this->notifyErrorCompilteHandler(pAsyncOperation->_ec))
+			{
+				/** пробуем перезапускаться */
+				while (retryNotify(_this));
+			}
+
+			/** ошибка */
+			_this->endOperation();
+			return;
 		}
 
 		/** кончился буфер для уведомления,
 			необходимо пере открыть папку */
-		cs::CCriticalSectionScoped lock(_this->_csCounter);
-
-		_this->_listDirectory.clear();
-		_this->_listFile.clear();
-
-		if (std::error_code ec = _this->startNotify())
-		{
-			/** ошибка уведомлений */
-			_this->notifyErrorCompilteHandler(ec);
-			_this->_pIocp->log(
-				logger::EMessageType::critical,
-				L"Error start notify",
-				ec);
-		}
-		else if (ec = _this->enumDirectory())
-		{
-			/** ошибка получения вложений */
-			_this->notifyErrorCompilteHandler(ec);
-			_this->_pIocp->log(
-				logger::EMessageType::critical,
-				L"Error enum directory",
-				ec);
-		}
+		while (retryNotify(_this));
 	}
 	catch (const std::exception& ex)
 	{
-		_this->notifyErrorCompilteHandler(
-			std::error_code(ERROR_FUNCTION_FAILED,
-				std::system_category()));
 		_this->_pIocp->log(logger::EMessageType::warning, ex);
+
+		if (_this->notifyErrorCompilteHandler(
+			std::error_code(ERROR_FUNCTION_FAILED,
+				std::system_category())))
+		{
+			auto bIsRetry = true;
+		
+			/** пробуем перезапускаться */
+			while (bIsRetry)
+			{
+				try
+				{
+					bIsRetry = retryNotify(_this);
+				}
+				catch (const std::exception& exRetry)
+				{
+					_this->_pIocp->log(logger::EMessageType::warning, exRetry);
+				}
+			}				
+		}		
 	}
 	
 	_this->endOperation();
 }
 //==============================================================================
 void CDirectoryPrefix::notifyAcceptCompilteHandler(
-	PFILE_NOTIFY_EXTENDED_INFORMATION pNotifyInfo) noexcept
+	PFILE_NOTIFY_EXTENDED_INFORMATION pNotifyInfo)
 {
 	#pragma warning (disable: 26493 26482 26446)
 	assert(pNotifyInfo != nullptr);
@@ -668,10 +725,8 @@ void CDirectoryPrefix::notifyAcceptCompilteHandler(
 	}
 	catch (const std::exception& ex)
 	{
-		notifyErrorCompilteHandler(
-			std::error_code(ERROR_FUNCTION_FAILED,
-			std::system_category()));
 		_pIocp->log(logger::EMessageType::critical, ex);
+		throw;
 	}
 }
 //==========================================================================
@@ -704,7 +759,7 @@ void CDirectoryPrefix::notifyDirectoryCompilteHandler(
 
 	/** пропускаем */
 }
-void CDirectoryPrefix::notifyErrorCompilteHandler(
+bool CDirectoryPrefix::notifyErrorCompilteHandler(
 	const std::error_code ec,
 	const bool bIsSubItem) noexcept
 {
@@ -712,10 +767,11 @@ void CDirectoryPrefix::notifyErrorCompilteHandler(
 
 	if (_pParent)
 	{
-		_pParent->notifyErrorCompilteHandler(ec, true);
+		return _pParent->notifyErrorCompilteHandler(ec, true);
 	}
 
 	/** пропускаем */
+	return false;
 }
 //==============================================================================
 CDirectoryPrefix::~CDirectory()

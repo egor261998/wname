@@ -24,7 +24,7 @@ namespace filesystem
 		* @param pIocp - указатель на механизм ввода/вывода.
 		* @oaram pParent - указатель на родительный класс.
 		*/
-		CDirectory(
+		WNAME CDirectory(
 			const std::filesystem::path directoryPath,
 			const std::shared_ptr<io::iocp::CIocp>& pIocp,
 			CDirectory* const pParent);
@@ -111,69 +111,69 @@ namespace filesystem
 		* найти все элементы.
 		* @return - код ошибки.
 		*/
-		std::error_code enumDirectory();
+		WNAME std::error_code enumDirectory();
 	//==========================================================================
 		/**
 		* добавление файла в список.
 		* @param uId - id файла.
 		* @param filePath - абсолютный путь.
 		*/
-		void addFileToDirectory(
+		WNAME void addFileToDirectory(
 			const std::filesystem::path& filePath);
 	//==========================================================================
 		/**
 		* добавление папки в список.
 		* @param uId - id папки.
 		*/
-		void addDirectoryToDirectory(
+		WNAME void addDirectoryToDirectory(
 			const std::filesystem::path& directoryPath);
 	//==========================================================================
 		/**
 		* удаление файла из списка.
 		* @param uId - id удаляемого файла.
 		*/
-		void removeFileFromDirectory(
+		WNAME void removeFileFromDirectory(
 			const UINT64 uId) noexcept;
 	//==========================================================================
 		/**
 		* удаление папки из списка.
 		* @param uId - id удаляемой папки.
 		*/
-		void removeDirectoryFromDirectory(
+		WNAME void removeDirectoryFromDirectory(
 			const UINT64 uId) noexcept;
 	//==========================================================================
 		/**
 		* изменить количество вложенных файлов.
 		* @param countItem - количество элементов
 		*/
-		void changeSubFileCount(
+		WNAME void changeSubFileCount(
 			const int countItem) noexcept;
 	//==========================================================================
 		/**
 		* изменить количество вложенных папок.
 		* @param countItem - количество элементов
 		*/
-		void changeSubDirectoryCount(
+		WNAME void changeSubDirectoryCount(
 			const int countItem) noexcept;
 	//==========================================================================
 		/**
 		* старт отслеживания папки.
 		* @return - код ошибки.
 		*/
-		std::error_code startNotify();
+		WNAME std::error_code startNotify();
 	//==========================================================================
 		/**
 		* применение уведомлений.
 		* @param pNotifyInfo - уведомления.
 		*/
-		void notifyAcceptCompilteHandler(
-			PFILE_NOTIFY_EXTENDED_INFORMATION pNotifyInfo) noexcept;
+		WNAME void notifyAcceptCompilteHandler(
+			PFILE_NOTIFY_EXTENDED_INFORMATION pNotifyInfo);
 	//==========================================================================
 		/**
 		* уведомление об изменение.
 		* @param pAsyncOperation - асинхронная операция.
 		*/
-		static void notifyCompilteHandler(
+		WNAME static void notifyCompilteHandler(
 			io::iocp::CAsyncOperation* const pAsyncOperation) noexcept;
 	//==========================================================================
 		/**
@@ -182,7 +182,7 @@ namespace filesystem
 		* @param pFile - файл.
 		* @param bIsSubItem - признак того что элемент является под элементом.
 		*/
-		virtual void notifyFileCompilteHandler(
+		WNAME virtual void notifyFileCompilteHandler(
 			const DWORD dwAction,
 			const std::shared_ptr<CFile> pFile,
 			const bool bIsSubItem = false);
@@ -193,7 +193,7 @@ namespace filesystem
 		* @param pDirectory - папка.
 		* @param bIsSubItem - признак того что элемент является под элементом.
 		*/
-		virtual void notifyDirectoryCompilteHandler(
+		WNAME virtual void notifyDirectoryCompilteHandler(
 			const DWORD dwAction,
 			const std::shared_ptr<CDirectory> pDirectory,
 			const bool bIsSubItem = false);
@@ -202,8 +202,9 @@ namespace filesystem
 		* уведомление об ошибки уведомления.
 		* @param ec - код ошибки.
 		* @param bIsSubItem - признак того что элемент является под элементом.
+		* @return - признак перезапуска уведомлений. 
 		*/
-		virtual void notifyErrorCompilteHandler(
+		WNAME virtual bool notifyErrorCompilteHandler(
 			const std::error_code ec,
 			const bool bIsSubItem = false) noexcept;
 	//==========================================================================
@@ -230,13 +231,8 @@ namespace filesystem
 		/** признак посылки уведомлений */
 		bool _isNotify = false;
 
+		/** информация с уведомлением об изменении */
 		std::vector<BYTE> _bufferNotify;
-		///** информация с уведомлением об изменении, размер буфера в 64кб */
-		//union
-		//{
-		//	FILE_NOTIFY_EXTENDED_INFORMATION _notifyInfo;
-		//	char _bufferNotifyInfo[BUFFER_64K];
-		//};
 
 		/** количество входящих элементов */
 		std::atomic_uint64_t _nCountSubFile;
