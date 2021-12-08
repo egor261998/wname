@@ -57,6 +57,12 @@
     <ClInclude Include="filesystem\CDirectory.h">
       <Filter>filesystem</Filter>
     </ClInclude>
+    <ClInclude Include="crypto\CMD5.h">
+      <Filter>crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="crypto\CCrc32.h">
+      <Filter>crypto</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="logger">
@@ -79,6 +85,9 @@
     </Filter>
     <Filter Include="filesystem">
       <UniqueIdentifier>{7d903948-858f-40b3-a748-ef17b6b9d56e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="crypto">
+      <UniqueIdentifier>{ca02382f-af95-45ef-90d6-c26fc574fb39}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -126,6 +135,12 @@
     </ClCompile>
     <ClCompile Include="filesystem\CDirectory.cpp">
       <Filter>filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto\CMD5.cpp">
+      <Filter>crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto\CCrc32.cpp">
+      <Filter>crypto</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

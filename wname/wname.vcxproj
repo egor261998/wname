@@ -319,6 +319,8 @@
   <ItemGroup>
     <ClInclude Include="critical section\CCriticalSection.h" />
     <ClInclude Include="critical section\CCriticalSectionScoped.h" />
+    <ClInclude Include="crypto\CCrc32.h" />
+    <ClInclude Include="crypto\CMD5.h" />
     <ClInclude Include="filesystem\CDirectory.h" />
     <ClInclude Include="filesystem\CFile.h" />
     <ClInclude Include="handle\CEvent.h" />
@@ -341,6 +343,8 @@
   <ItemGroup>
     <ClCompile Include="critical section\CCriticalSection.cpp" />
     <ClCompile Include="critical section\CCriticalSectionScoped.cpp" />
+    <ClCompile Include="crypto\CCrc32.cpp" />
+    <ClCompile Include="crypto\CMD5.cpp" />
     <ClCompile Include="filesystem\CDirectory.cpp" />
     <ClCompile Include="filesystem\CFile.cpp" />
     <ClCompile Include="handle\CEvent.cpp" />

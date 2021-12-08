@@ -40,6 +40,10 @@
 #include "misc\CCounter.h"
 #include "misc\CCounterScoped.h"
 
+/** криптография */
+#include "crypto\CMD5.h"
+#include "crypto\CCrc32.h"
+
 /** ввод/вывод */
 #include "io\iocp\CIocp.h"
 #include "io\iocp\CThreadPool.h"
