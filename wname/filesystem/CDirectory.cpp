@@ -385,7 +385,7 @@ void CDirectoryPrefix::removeFileFromDirectory(
 {
 	#pragma warning(disable: 26472)
 	cs::CCriticalSectionScoped lock(_csCounter);
-	
+
 	const auto count = static_cast<int>(_listFile.erase(uId));
 	changeSubFileCount(-count);
 }
@@ -395,7 +395,7 @@ void CDirectoryPrefix::removeDirectoryFromDirectory(
 {
 	#pragma warning(disable: 26472)
 	cs::CCriticalSectionScoped lock(_csCounter);
-	
+
 	const auto count = static_cast<int>(_listDirectory.erase(uId));
 	changeSubDirectoryCount(-count);
 }
@@ -422,7 +422,6 @@ void CDirectoryPrefix::changeSubDirectoryCount(
 //==============================================================================
 std::error_code CDirectoryPrefix::startNotify()
 {
-	#pragma warning(disable: 26472)
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
 		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
@@ -441,14 +440,14 @@ std::error_code CDirectoryPrefix::startNotify()
 		{
 			_bufferNotify.resize(BUFFER_64K);
 		}
-
-		pAsyncOperation->_dwBufferSize = static_cast<DWORD>(_bufferNotify.size());
-		pAsyncOperation->_pBuffer = _bufferNotify.data();
+	
+		pAsyncOperation->_buffer._p = _bufferNotify.data();
+		pAsyncOperation->_buffer._dwSize = static_cast<DWORD>(_bufferNotify.size());
 
 		const auto bRes = ReadDirectoryChangesExW(
 			_hAsyncHandle,
-			pAsyncOperation->_pBuffer,
-			pAsyncOperation->_dwBufferSize, false,
+			pAsyncOperation->_buffer._p,
+			pAsyncOperation->_buffer._dwSize, false,
 			FILE_NOTIFY_CHANGE_FILE_NAME |
 			FILE_NOTIFY_CHANGE_DIR_NAME |
 			FILE_NOTIFY_CHANGE_ATTRIBUTES |

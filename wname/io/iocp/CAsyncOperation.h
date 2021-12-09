@@ -9,6 +9,18 @@ namespace io::iocp
 		friend class CIocp;
 		friend class misc::CInterlockedList<CAsyncOperation>;
 
+	#pragma region Public_Inner
+	//==========================================================================
+		/** буфер ввода/вывода */
+		typedef struct _SBuffer
+		{
+			/** буфер который используется в операции */
+			PBYTE _p;
+			/** размер буфера */
+			DWORD _dwSize;
+		} SBuffer, *PSBuffer;
+	//==========================================================================
+
 	#pragma region Public_Method
 	public:
 	//==========================================================================
@@ -46,10 +58,16 @@ namespace io::iocp
 
 		/** асинхронный контекст */
 		OVERLAPPED _overlapped = { 0 };
-		/** буфер который используется в операции */
-		PBYTE _pBuffer = nullptr;
-		/** размер буфера */
-		DWORD _dwBufferSize = 0;
+
+		union
+		{
+			/** буфер для сокетов */
+			WSABUF _wsaBuffer{ 0 };
+
+			/** буфер для всех */
+			SBuffer _buffer;
+		};	
+		
 		/** возвращенных байт из асинхронной операции */
 		DWORD _dwReturnSize = 0;
 		/** код ошибки */

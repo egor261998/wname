@@ -114,8 +114,8 @@ namespace io
 	//==========================================================================
 	#pragma endregion
 
-	#pragma region Private_Method
-	private:
+	#pragma region Protected_Method
+	protected:
 	//==========================================================================
 		/**
 		* виртуальный обработчик события завершения асинхронного чтения.
@@ -143,22 +143,34 @@ namespace io
 		* обработчик события завершения асинхронного чтения.
 		* @param pAsyncOperation - асинхронная операция.
 		*/
-		WNAME static void asyncReadCompilteHandler(
+		WNAME static void asyncReadIocpHandler(
 			iocp::CAsyncOperation* const pAsyncOperation) noexcept;
 	//==========================================================================
 		/**
 		* обработчик события завершения асинхронной записи.
 		* @param pAsyncOperation - асинхронная операция.
 		*/
-		WNAME static void asyncWriteCompilteHandler(
+		WNAME static void asyncWriteIocpHandler(
 			iocp::CAsyncOperation* const pAsyncOperation) noexcept;
 	//==========================================================================
 		/**
 		* обработчик события завершения асинхронной операции.
 		* @param pAsyncOperation - асинхронная операция.
 		*/
-		WNAME static void asyncCompilteHandler(
+		WNAME static void asyncIocpHandler(
 			iocp::CAsyncOperation* const pAsyncOperation) noexcept;
+	//==========================================================================
+	#pragma endregion
+
+	#pragma region Public_Data
+	public:
+	//==========================================================================
+		/** статистика */
+		std::atomic_uint64_t _nCountReadByte = 0;
+		std::atomic_uint64_t _nCountWriteByte = 0;
+
+		/** количество асинхронных операций */
+		std::atomic_uint64_t _nCountIoOperation = 0;
 	//==========================================================================
 	#pragma endregion
 

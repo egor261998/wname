@@ -6,7 +6,7 @@ namespace filesystem
 	/** работа с директорией */
 	class CDirectory : protected io::CAsyncIo
 	{
-#pragma region Public_Method
+	#pragma region Public_Method
 	public:
 	//==========================================================================
 		/**

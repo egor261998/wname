@@ -97,17 +97,17 @@ std::error_code CAsyncIoPrefix::startAsyncRead(
 	try
 	{
 		auto pAsyncOperation =
-			_pIocp->getAsyncOperation(this, asyncReadCompilteHandler);
+			_pIocp->getAsyncOperation(this, asyncReadIocpHandler);
 		assert(pAsyncOperation != nullptr);
 
-		pAsyncOperation->_pBuffer = bufferRead;
-		pAsyncOperation->_dwBufferSize = dwBufferSize;
+		pAsyncOperation->_buffer._p = bufferRead;
+		pAsyncOperation->_buffer._dwSize = dwBufferSize;
 		*(UINT64*)&pAsyncOperation->_overlapped.Offset = offset;
 
 		if (!ReadFile(getHandle(),
-			pAsyncOperation->_pBuffer,
-			pAsyncOperation->_dwBufferSize,
-			&pAsyncOperation->_dwReturnSize,
+			pAsyncOperation->_buffer._p,
+			pAsyncOperation->_buffer._dwSize,
+			nullptr,
 			&pAsyncOperation->_overlapped))
 		{
 			const auto dwResult = GetLastError();
@@ -119,6 +119,7 @@ std::error_code CAsyncIoPrefix::startAsyncRead(
 			}
 		}
 
+		_nCountIoOperation++;
 		counter.release();
 		return std::error_code();
 	}
@@ -144,21 +145,22 @@ std::error_code CAsyncIoPrefix::startRead(
 	{
 		std::error_code ec;
 		handle::CEvent hEvent;
+		DWORD dwReturnSize = 0;
 		hEvent.initialize();
-		auto context = std::tuple(&hEvent, pdwReturnSize, &ec);
+		auto context = std::tuple(&hEvent, &dwReturnSize, &ec);
 
 		auto pAsyncOperation =
-			_pIocp->getAsyncOperation(&context, asyncCompilteHandler);
+			_pIocp->getAsyncOperation(&context, asyncIocpHandler);
 		assert(pAsyncOperation != nullptr);
 
-		pAsyncOperation->_pBuffer = bufferRead;
-		pAsyncOperation->_dwBufferSize = dwBufferSize;
+		pAsyncOperation->_buffer._p = bufferRead;
+		pAsyncOperation->_buffer._dwSize = dwBufferSize;
 		*(UINT64*)&pAsyncOperation->_overlapped.Offset = offset;
 
 		if (!ReadFile(getHandle(),
-			pAsyncOperation->_pBuffer,
-			pAsyncOperation->_dwBufferSize,
-			&pAsyncOperation->_dwReturnSize,
+			pAsyncOperation->_buffer._p,
+			pAsyncOperation->_buffer._dwSize,
+			nullptr,
 			&pAsyncOperation->_overlapped))
 		{
 			const auto dwResultPending = GetLastError();
@@ -171,6 +173,11 @@ std::error_code CAsyncIoPrefix::startRead(
 		}
 
 		hEvent.wait();
+		_nCountReadByte += dwReturnSize;
+		if (pdwReturnSize != nullptr)
+		{
+			*pdwReturnSize = dwReturnSize;
+		}
 		return ec;
 	}
 	catch (const std::exception& ex)
@@ -193,17 +200,17 @@ std::error_code CAsyncIoPrefix::startAsyncWrite(
 	try
 	{
 		auto pAsyncOperation =
-			_pIocp->getAsyncOperation(this, asyncWriteCompilteHandler);
+			_pIocp->getAsyncOperation(this, asyncWriteIocpHandler);
 		assert(pAsyncOperation != nullptr);
 
-		pAsyncOperation->_pBuffer = bufferWrite;
-		pAsyncOperation->_dwBufferSize = dwBufferSize;
+		pAsyncOperation->_buffer._p = bufferWrite;
+		pAsyncOperation->_buffer._dwSize = dwBufferSize;
 		*(UINT64*)&pAsyncOperation->_overlapped.Offset = offset;
 
 		if (!WriteFile(getHandle(),
-			pAsyncOperation->_pBuffer,
-			pAsyncOperation->_dwBufferSize,
-			&pAsyncOperation->_dwReturnSize,
+			pAsyncOperation->_buffer._p,
+			pAsyncOperation->_buffer._dwSize,
+			nullptr,
 			&pAsyncOperation->_overlapped))
 		{
 			const auto dwResult = GetLastError();
@@ -215,6 +222,7 @@ std::error_code CAsyncIoPrefix::startAsyncWrite(
 			}
 		}
 
+		_nCountIoOperation++;
 		counter.release();
 		return std::error_code();
 	}
@@ -240,21 +248,22 @@ std::error_code CAsyncIoPrefix::startWrite(
 	{
 		std::error_code ec;
 		handle::CEvent hEvent;
+		DWORD dwReturnSize = 0;
 		hEvent.initialize();
-		auto context = std::tuple(&hEvent, pdwReturnSize, &ec);
+		auto context = std::tuple(&hEvent, &dwReturnSize, &ec);
 
 		auto pAsyncOperation =
-			_pIocp->getAsyncOperation(&context, asyncCompilteHandler);
+			_pIocp->getAsyncOperation(&context, asyncIocpHandler);
 		assert(pAsyncOperation != nullptr);
 
-		pAsyncOperation->_pBuffer = bufferWrite;
-		pAsyncOperation->_dwBufferSize = dwBufferSize;
+		pAsyncOperation->_buffer._p = bufferWrite;
+		pAsyncOperation->_buffer._dwSize = dwBufferSize;
 		*(UINT64*)&pAsyncOperation->_overlapped.Offset = offset;
 
 		if (!WriteFile(getHandle(),
-			pAsyncOperation->_pBuffer,
-			pAsyncOperation->_dwBufferSize,
-			&pAsyncOperation->_dwReturnSize,
+			pAsyncOperation->_buffer._p,
+			pAsyncOperation->_buffer._dwSize,
+			nullptr,
 			&pAsyncOperation->_overlapped))
 		{
 			const auto dwResultPending = GetLastError();
@@ -267,6 +276,11 @@ std::error_code CAsyncIoPrefix::startWrite(
 		}
 
 		hEvent.wait();
+		_nCountWriteByte += dwReturnSize;
+		if (pdwReturnSize != nullptr)
+		{
+			*pdwReturnSize = dwReturnSize;
+		}
 		return ec;
 	}
 	catch (const std::exception& ex)
@@ -308,7 +322,7 @@ void CAsyncIoPrefix::asyncWriteComplitionHandler(
 	UNREFERENCED_PARAMETER(ec);
 };
 //==============================================================================
-void CAsyncIoPrefix::asyncReadCompilteHandler(
+void CAsyncIoPrefix::asyncReadIocpHandler(
 	iocp::CAsyncOperation* const pAsyncOperation) noexcept
 {
 	/** отсутствует асинхронная операция */
@@ -320,16 +334,19 @@ void CAsyncIoPrefix::asyncReadCompilteHandler(
 		pAsyncOperation->_pCompletionRoutineContext);
 	assert(_this != nullptr);
 
+	_this->_nCountReadByte += pAsyncOperation->_dwReturnSize;
+	_this->_nCountIoOperation--;
+
 	/** обработчик асинхронного чтения */
 	_this->asyncReadComplitionHandler(
-		pAsyncOperation->_pBuffer,
+		pAsyncOperation->_buffer._p,
 		pAsyncOperation->_dwReturnSize,
 		pAsyncOperation->_ec);
 
 	_this->endOperation();
 }
 //==============================================================================
-void CAsyncIoPrefix::asyncWriteCompilteHandler(
+void CAsyncIoPrefix::asyncWriteIocpHandler(
 	iocp::CAsyncOperation* const pAsyncOperation) noexcept
 {
 	/** отсутствует асинхронная операция */
@@ -341,16 +358,19 @@ void CAsyncIoPrefix::asyncWriteCompilteHandler(
 		pAsyncOperation->_pCompletionRoutineContext);
 	assert(_this != nullptr);
 
+	_this->_nCountWriteByte += pAsyncOperation->_dwReturnSize;
+	_this->_nCountIoOperation--;
+
 	/** обработчик асинхронной записи */
 	_this->asyncWriteComplitionHandler(
-		pAsyncOperation->_pBuffer,
+		pAsyncOperation->_buffer._p,
 		pAsyncOperation->_dwReturnSize,
 		pAsyncOperation->_ec);
 
 	_this->endOperation();
 }
 //==============================================================================
-void CAsyncIoPrefix::asyncCompilteHandler(
+void CAsyncIoPrefix::asyncIocpHandler(
 	iocp::CAsyncOperation* const pAsyncOperation) noexcept
 {
 	/** отсутствует асинхронная операция */
@@ -362,8 +382,17 @@ void CAsyncIoPrefix::asyncCompilteHandler(
 		std::tuple<handle::CEvent*, PDWORD, std::error_code*>*>(
 		pAsyncOperation->_pCompletionRoutineContext);
 
-	*std::get<1>(contex) = pAsyncOperation->_dwReturnSize;
-	*std::get<2>(contex) = pAsyncOperation->_ec;
+	if (std::get<1>(contex) != nullptr)
+	{
+		/** возвращенный размер операции */
+		*std::get<1>(contex) = pAsyncOperation->_dwReturnSize;
+	}
+
+	if (std::get<2>(contex) != nullptr)
+	{
+		/** ошибка операции */
+		*std::get<2>(contex) = pAsyncOperation->_ec;
+	}
 
 	if (const auto ec = std::get<0>(contex)->notify(); ec)
 	{

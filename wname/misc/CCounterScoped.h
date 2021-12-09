@@ -12,9 +12,11 @@ namespace misc
 		/**
 		* конструктор по умолчанию.
 		* @param counter - счетчик операций.
+		* @param dwCount - количество повешанных ссылок.
 		*/
 		WNAME CCounterScoped(
-			CCounter& counter) noexcept;
+			CCounter& counter,
+			const DWORD dwCount = 1) noexcept;
 	//==========================================================================
 		/**
 		* успех старта счетчика.
@@ -44,6 +46,9 @@ namespace misc
 	//==========================================================================
 		/** используемый счетчик */
 		CCounter& _counter;
+
+		/** количество повешанных ссылок */
+		const DWORD _dwCount;
 
 		/** успех старта счетчика */
 		std::atomic_bool _bIsStartOperation = false;

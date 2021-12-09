@@ -4,10 +4,22 @@ using CCounterScopedPrefix = wname::misc::CCounterScoped;
 
 //==============================================================================
 CCounterScopedPrefix::CCounterScoped(
-	CCounter& counter) noexcept
-	: _counter(counter)
+	CCounter& counter,
+	const DWORD dwCount) noexcept
+	: _counter(counter), _dwCount(dwCount)
 {
-	_bIsStartOperation = _counter.startOperation();
+	for (DWORD i = 0; i < _dwCount; i++)
+	{
+		_bIsStartOperation = _counter.startOperation();
+		if (!_bIsStartOperation)
+		{
+			/** отменяем предыдущие */
+			for (DWORD j = 0; j < i; j++)
+			{
+				_counter.endOperation();
+			}
+		}
+	}
 }
 //==============================================================================
 bool CCounterScopedPrefix::isStartOperation() const noexcept
@@ -23,6 +35,9 @@ void CCounterScopedPrefix::release() noexcept
 CCounterScopedPrefix::~CCounterScoped()
 {
 	if (_bIsStartOperation)
-		_counter.endOperation();		
+	{
+		for (DWORD i = 0; i < _dwCount; i++)
+			_counter.endOperation();
+	}				
 }
 //==============================================================================
