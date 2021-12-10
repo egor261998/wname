@@ -63,6 +63,27 @@
     <ClInclude Include="crypto\CCrc32.h">
       <Filter>crypto</Filter>
     </ClInclude>
+    <ClInclude Include="network\socket\CSocketHandle.h">
+      <Filter>network\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="network\socket\CSocketAdress.h">
+      <Filter>network\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="network\socket\CSocketIo.h">
+      <Filter>network\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="network\socket\ESocketState.h">
+      <Filter>network\socket</Filter>
+    </ClInclude>
+    <ClInclude Include="network\CTcpClient.h">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="network\CTcpServer.h">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="network\CTcpConnectedClient.h">
+      <Filter>network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="logger">
@@ -88,6 +109,12 @@
     </Filter>
     <Filter Include="crypto">
       <UniqueIdentifier>{ca02382f-af95-45ef-90d6-c26fc574fb39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="network">
+      <UniqueIdentifier>{4920f32e-17eb-452f-a3dc-a115325cad7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="network\socket">
+      <UniqueIdentifier>{cf5e2310-705d-4ef3-8832-802c156b0952}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +168,24 @@
     </ClCompile>
     <ClCompile Include="crypto\CCrc32.cpp">
       <Filter>crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="network\socket\CSocketHandle.cpp">
+      <Filter>network\socket</Filter>
+    </ClCompile>
+    <ClCompile Include="network\socket\CSocketAdress.cpp">
+      <Filter>network\socket</Filter>
+    </ClCompile>
+    <ClCompile Include="network\socket\CSocketIo.cpp">
+      <Filter>network\socket</Filter>
+    </ClCompile>
+    <ClCompile Include="network\CTcpClient.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="network\CTcpServer.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="network\CTcpConnectedClient.cpp">
+      <Filter>network</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

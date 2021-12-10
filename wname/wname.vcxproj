@@ -337,6 +337,13 @@
     <ClInclude Include="misc\CCounterScoped.h" />
     <ClInclude Include="misc\CInterlockedList.h" />
     <ClInclude Include="misc\CThreadTls.h" />
+    <ClInclude Include="network\CTcpClient.h" />
+    <ClInclude Include="network\CTcpConnectedClient.h" />
+    <ClInclude Include="network\CTcpServer.h" />
+    <ClInclude Include="network\socket\CSocketAdress.h" />
+    <ClInclude Include="network\socket\CSocketHandle.h" />
+    <ClInclude Include="network\socket\CSocketIo.h" />
+    <ClInclude Include="network\socket\ESocketState.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="wname.h" />
   </ItemGroup>
@@ -358,6 +365,12 @@
     <ClCompile Include="logger\Ilogger.cpp" />
     <ClCompile Include="misc\CCounter.cpp" />
     <ClCompile Include="misc\CCounterScoped.cpp" />
+    <ClCompile Include="network\CTcpClient.cpp" />
+    <ClCompile Include="network\CTcpConnectedClient.cpp" />
+    <ClCompile Include="network\CTcpServer.cpp" />
+    <ClCompile Include="network\socket\CSocketAdress.cpp" />
+    <ClCompile Include="network\socket\CSocketHandle.cpp" />
+    <ClCompile Include="network\socket\CSocketIo.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
