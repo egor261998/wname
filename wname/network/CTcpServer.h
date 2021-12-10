@@ -61,27 +61,33 @@ namespace network
 		* удаление клиента из списка.
 		* @param pClient - удаляемый клиент.
 		*/
-		void removeClient(
+		WNAME void removeClient(
 			CTcpConnectedClient* const pClient) noexcept;
 	//==========================================================================
 		/**
 		* добавить клиента в список.
 		* @return - подключаемый клиент.
 		*/
-		CTcpConnectedClient* addClient();
+		WNAME CTcpConnectedClient* addClient();
 	//==========================================================================
 		/**
 		* обработчик события принятия нового подключения со всех TCP серверов.
 		* @param pAsyncOperation - асинхронная операция.
 		*/
-		static void clientAcceptedEventHandler(
+		WNAME static void clientAcceptedEventHandler(
 			io::iocp::CAsyncOperation* const pAsyncOperation) noexcept;
 	//==========================================================================
 		/**
 		* старт прослушивания для ожидания нового подключения.
 		* @return - код ошибки.
 		*/
-		std::error_code startListen();
+		WNAME std::error_code startListen();
+	//==========================================================================
+		/**
+		* виртуальный обработчик создания клиента.
+		* @return - клиент
+		*/
+		WNAME virtual std::unique_ptr<CTcpConnectedClient> createClient();
 	//==========================================================================
 		/**
 		* виртуальный обработчик события завершения асинхронного чтения.
@@ -90,11 +96,11 @@ namespace network
 		* @param dwBufferSize - количество прочитанных байт.
 		* @param ec - код завершения.
 		*/
-		virtual void clientAsyncRecvComplite(
+		WNAME virtual void clientAsyncRecvComplite(
 			CTcpConnectedClient* const pTcpClient,
 			const PBYTE bufferRecv,
 			const DWORD dwReturnSize,
-			const std::error_code ec) noexcept = 0;
+			const std::error_code ec) noexcept;
 	//==========================================================================
 		/**
 		* виртуальный обработчик события завершения асинхронной записи.
@@ -103,43 +109,43 @@ namespace network
 		* @param dwBufferSize - количество записанных байт.
 		* @param ec - код завершения.
 		*/
-		virtual void clientAsyncSendComplite(
+		WNAME virtual void clientAsyncSendComplite(
 			CTcpConnectedClient* const pTcpClient,
 			const PBYTE bufferSend,
 			const DWORD dwReturnSize,
-			const std::error_code ec) noexcept = 0;
+			const std::error_code ec) noexcept;
 	//==========================================================================
 		/**
 		* виртуальный обработчик события подключения нового клиента.
 		* @param pTcpClient - ссылка на текущего клиента.
 		* @param ec - код ошибки завершения.
 		*/
-		virtual void clientConnected(
+		WNAME virtual void clientConnected(
 			CTcpConnectedClient* const pTcpClient,
-			const std::error_code ec) noexcept = 0;
+			const std::error_code ec) noexcept;
 	//==========================================================================
 		/**
 		* виртуальный обработчик события отключения клиента.
 		* @param pTcpClient - клиент.
 		* @param ec - код ошибки завершения.
 		*/
-		virtual void clientDisconnected(
+		WNAME virtual void clientDisconnected(
 			CTcpConnectedClient* const pTcpClient,
-			const std::error_code ec) noexcept = 0;
+			const std::error_code ec) noexcept;
 	//==========================================================================
 		/**
 		* виртуальный обработчик события отключения сервера.
 		* @param ec - код ошибки.
 		*/
-		virtual void serverConnected(
-			const std::error_code ec) noexcept = 0;
+		WNAME virtual void serverConnected(
+			const std::error_code ec) noexcept;
 	//==========================================================================
 		/**
 		* виртуальный обработчик события отключения сервера.
 		* @param ec - код ошибки.
 		*/
-		virtual void serverDisconnected(
-			const std::error_code ec) noexcept = 0;
+		WNAME virtual void serverDisconnected(
+			const std::error_code ec) noexcept;
 	//==========================================================================
 	#pragma endregion
 

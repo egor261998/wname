@@ -26,7 +26,7 @@ namespace network::socket
 		WNAME virtual std::error_code startAsyncRecv(
 			const PBYTE bufferRecv,
 			const DWORD dwBufferSize,
-			const DWORD dwFlags);
+			const DWORD dwFlags = 0u);
 	//==========================================================================
 		/**
 		* старт чтения.
@@ -40,7 +40,7 @@ namespace network::socket
 			const PBYTE bufferRecv,
 			const DWORD dwBufferSize,
 			const PDWORD pdwReturnSize,
-			const DWORD dwFlags);
+			const DWORD dwFlags = 0u);
 	//==========================================================================
 		/**
 		* старт асинхронной записи.
@@ -52,7 +52,7 @@ namespace network::socket
 		WNAME virtual std::error_code startAsyncSend(
 			const PBYTE bufferSend,
 			const DWORD dwBufferSize,
-			const DWORD dwFlags);
+			const DWORD dwFlags = 0u);
 	//==========================================================================
 		/**
 		* старт записи.
@@ -66,7 +66,7 @@ namespace network::socket
 			const PBYTE bufferSend,
 			const DWORD dwBufferSize,
 			const PDWORD pdwReturnSize,
-			const DWORD dwFlags);
+			const DWORD dwFlags = 0u);
 	//==========================================================================
 		/**
 		* закончить работу и дождаться всех асинхронных операций.

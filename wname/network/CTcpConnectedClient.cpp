@@ -209,6 +209,19 @@ void CTcpConnectedClientPrefix::disconnect(
 		_eSocketState = ESocketStatePrefix::disconnecting;
 		_ec = ec;
 
+		try
+		{
+			if (!_socket.getDisconnectex()(_socket, nullptr, 0, 0))
+			{
+				if (!_ec)
+					_ec = std::error_code(WSAGetLastError(), std::system_category());
+			}
+		}
+		catch (const std::exception& ex)
+		{
+			_pIocp->log(logger::EMessageType::warning, ex);
+		}
+
 		shutdown(_socket, SD_BOTH);
 		CancelIoEx(_socket, nullptr);
 		disconnect();
@@ -226,9 +239,8 @@ void CTcpConnectedClientPrefix::asyncSendComplitionHandler(
 {
 	assert(bufferSend != nullptr);
 
-	if (ec || dwReturnSize == 0)
-		disconnect(
-			ec ? ec : std::error_code(ERROR_INVALID_FUNCTION, std::system_category()));
+	if (ec)
+		disconnect(ec);
 
 	_pParent->clientAsyncSendComplite(
 		this, bufferSend, dwReturnSize, ec);
@@ -243,9 +255,8 @@ void CTcpConnectedClientPrefix::asyncRecvComplitionHandler(
 {
 	assert(bufferRecv);
 
-	if (ec || dwReturnSize == 0)
-		disconnect(
-			ec ? ec : std::error_code(ERROR_INVALID_FUNCTION, std::system_category()));
+	if (ec)
+		disconnect(ec);
 
 	_pParent->clientAsyncRecvComplite(
 		this, bufferRecv, dwReturnSize, ec);

@@ -36,7 +36,7 @@ namespace network
 		WNAME std::error_code startAsyncSend(
 			const PBYTE bufferSend,
 			const DWORD dwBufferSize,
-			const DWORD dwFlags) override;
+			const DWORD dwFlags = 0u) override;
 	//==========================================================================
 		/**
 		* старт синхронной записи в сокет.
@@ -50,7 +50,7 @@ namespace network
 			const PBYTE bufferSend,
 			const DWORD dwBufferSize,
 			const PDWORD pdwReturnSize,
-			const DWORD dwFlags) override;
+			const DWORD dwFlags = 0u) override;
 	//==========================================================================
 		/**
 		* старт асинхронной чтения из сокета.
@@ -62,7 +62,7 @@ namespace network
 		WNAME std::error_code startAsyncRecv(
 			const PBYTE bufferRecv,
 			const DWORD dwBufferSize,
-			const DWORD dwFlags) override;
+			const DWORD dwFlags = 0u) override;
 	//==========================================================================
 		/**
 		* старт синхронного чтения из сокета.
@@ -76,7 +76,7 @@ namespace network
 			const PBYTE bufferRecv,
 			const DWORD dwBufferSize,
 			const PDWORD pdwReturnSize,
-			const DWORD dwFlags) override;
+			const DWORD dwFlags = 0u) override;
 	//==========================================================================
 		/**
 		* получить состояние сокета.

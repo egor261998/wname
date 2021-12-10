@@ -27,7 +27,7 @@ namespace network
 		WNAME std::error_code startAsyncSend(
 			const PBYTE bufferSend,
 			const DWORD dwBufferSize,
-			const DWORD dwFlags) override;
+			const DWORD dwFlags = 0u) override;
 	//==========================================================================
 		/**
 		* старт синхронной записи в сокет.
@@ -41,7 +41,7 @@ namespace network
 			const PBYTE bufferSend,
 			const DWORD dwBufferSize,
 			const PDWORD pdwReturnSize,
-			const DWORD dwFlags) override;
+			const DWORD dwFlags = 0u) override;
 	//==========================================================================
 		/**
 		* старт асинхронной чтени€ из сокета.
@@ -53,7 +53,7 @@ namespace network
 		WNAME std::error_code startAsyncRecv(
 			const PBYTE bufferRecv,
 			const DWORD dwBufferSize,
-			const DWORD dwFlags) override;
+			const DWORD dwFlags = 0u) override;
 	//==========================================================================
 		/**
 		* старт синхронного чтени€ из сокета.
@@ -67,7 +67,7 @@ namespace network
 			const PBYTE bufferRecv,
 			const DWORD dwBufferSize,
 			const PDWORD pdwReturnSize,
-			const DWORD dwFlags) override;
+			const DWORD dwFlags = 0u) override;
 	//==========================================================================
 		/**
 		* разорвать соединение.
@@ -97,7 +97,7 @@ namespace network
 		* @param dwReturnSize - количество записанных байт.
 		* @param ec - код ошибки завершени€.
 		*/
-		void asyncSendComplitionHandler(
+		WNAME void asyncSendComplitionHandler(
 			const PBYTE bufferSend,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept override;
@@ -108,7 +108,7 @@ namespace network
 		* @param dwReturnSize - количество прочитанных байт.
 		* @param ec - код ошибки завершени€.
 		*/
-		void asyncRecvComplitionHandler(
+		WNAME void asyncRecvComplitionHandler(
 			const PBYTE bufferRecv,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept override;

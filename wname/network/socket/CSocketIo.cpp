@@ -109,7 +109,9 @@ std::error_code CSocketIoPrefix::startRecv(
 		{
 			*pdwReturnSize = dwReturnSize;
 		}
-		return ec;
+
+		return !ec && dwReturnSize == 0 ?
+			std::error_code(ERROR_OPERATION_ABORTED, std::system_category()) : ec;
 	}
 	catch (const std::exception& ex)
 	{
@@ -214,7 +216,8 @@ std::error_code CSocketIoPrefix::startSend(
 		{
 			*pdwReturnSize = dwReturnSize;
 		}
-		return ec;
+		return !ec && dwReturnSize == 0 ?
+			std::error_code(ERROR_OPERATION_ABORTED, std::system_category()) : ec;
 	}
 	catch (const std::exception& ex)
 	{
@@ -233,7 +236,11 @@ void CSocketIoPrefix::asyncReadComplitionHandler(
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
 {
-	asyncRecvComplitionHandler(bufferRead, dwReturnSize, ec);
+	const auto ecComplition =
+		!ec && dwReturnSize == 0 ?
+		std::error_code(ERROR_OPERATION_ABORTED, std::system_category()) : ec;
+
+	asyncRecvComplitionHandler(bufferRead, dwReturnSize, ecComplition);
 
 	endOperation();
 }
@@ -243,7 +250,11 @@ void CSocketIoPrefix::asyncWriteComplitionHandler(
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
 {
-	asyncSendComplitionHandler(bufferWrite, dwReturnSize, ec);
+	const auto ecComplition =
+		!ec && dwReturnSize == 0 ?
+		std::error_code(ERROR_OPERATION_ABORTED, std::system_category()) : ec;
+
+	asyncSendComplitionHandler(bufferWrite, dwReturnSize, ecComplition);
 
 	endOperation();
 }

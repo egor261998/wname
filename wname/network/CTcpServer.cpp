@@ -113,7 +113,7 @@ void CTcpClientPrefix::disconnectServer(
 		break;
 	case ESocketStatePrefix::disconnecting:
 	{
-		if (_listClients.size() > 0)
+		if (_listClients.empty())
 			return;
 
 		_eSocketState = ESocketStatePrefix::disconnected;
@@ -129,13 +129,25 @@ void CTcpClientPrefix::disconnectServer(
 
 		shutdown(_socket, SD_BOTH);
 		CancelIoEx(_socket, nullptr);
-
-		/** сворачиваем всех клиентов */
-		for (const auto& it : _listClients)
+		try
 		{
-			it.second->disconnect(_ec);
-		}
+			/** сворачиваем всех клиентов */
+			for (auto it = _listClients.begin(); it != _listClients.end(); )
+			{
+				auto itCur = it;
+				it++;
 
+				itCur->second.release();
+
+				itCur->first->deleteAfterEndOperation();
+				itCur->first->disconnect();
+			}
+		}
+		catch (const std::exception& ex)
+		{
+			_pIocp->log(logger::EMessageType::warning, ex);
+		}
+		
 		disconnectServer();
 		break;
 	}
@@ -151,11 +163,17 @@ void CTcpClientPrefix::removeClient(
 		return;
 
 	cs::CCriticalSectionScoped lock(_csCounter);
+	bool bAlreadyDelete = true;
 
 	try
-	{
-		pClient->deleteAfterEndOperation();
-		_listClients.at(pClient).release();
+	{	
+		if (const auto& it = _listClients.find(pClient); it != _listClients.end())
+		{
+			bAlreadyDelete = false;
+			pClient->deleteAfterEndOperation();
+			it->second.release();
+			_listClients.erase(it);
+		}
 	}
 	catch (const std::exception& ex)
 	{
@@ -167,7 +185,8 @@ void CTcpClientPrefix::removeClient(
 		disconnectServer();
 
 	/** снимаем ссылку, клиента больше нет в списке */
-	endOperation();
+	if(!bAlreadyDelete)
+		endOperation();
 }
 //==============================================================================
 CTcpClientPrefix::CTcpConnectedClient* CTcpClientPrefix::addClient()
@@ -181,7 +200,7 @@ CTcpClientPrefix::CTcpConnectedClient* CTcpClientPrefix::addClient()
 
 	try
 	{
-		auto pClient = std::make_unique<CTcpConnectedClient>(this);
+		auto pClient = createClient();
 		const auto p = pClient.get();
 		_listClients[p] = std::move(pClient);
 
@@ -251,6 +270,7 @@ void CTcpClientPrefix::clientAcceptedEventHandler(
 		_this->_pIocp->log(logger::EMessageType::warning, ex);
 
 		ec = std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		pParent->removeClient(_this);
 		pParent->disconnectServer(ec);
 		pParent->endOperation();
 		return;
@@ -318,6 +338,7 @@ std::error_code CTcpClientPrefix::startListen()
 				}
 			}
 
+			counter.release();
 			return std::error_code();
 		}
 		catch (const std::exception&)
@@ -331,6 +352,72 @@ std::error_code CTcpClientPrefix::startListen()
 		_pIocp->log(logger::EMessageType::critical, ex);
 		throw;
 	}
+}
+//==============================================================================
+std::unique_ptr<CTcpClientPrefix::CTcpConnectedClient> CTcpClientPrefix::createClient()
+{
+	try
+	{
+		/** создание клиента по-умолчанию */
+		return std::make_unique<CTcpConnectedClient>(this);
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(logger::EMessageType::critical, ex);
+		throw;
+	}
+}
+//==============================================================================
+void CTcpClientPrefix::clientAsyncRecvComplite(
+	CTcpConnectedClient* const pTcpClient,
+	const PBYTE bufferRecv,
+	const DWORD dwReturnSize,
+	const std::error_code ec) noexcept
+{
+	UNREFERENCED_PARAMETER(pTcpClient);
+	UNREFERENCED_PARAMETER(bufferRecv);
+	UNREFERENCED_PARAMETER(dwReturnSize);
+	UNREFERENCED_PARAMETER(ec);
+}
+//==============================================================================
+void CTcpClientPrefix::clientAsyncSendComplite(
+	CTcpConnectedClient* const pTcpClient,
+	const PBYTE bufferSend,
+	const DWORD dwReturnSize,
+	const std::error_code ec) noexcept
+{
+	UNREFERENCED_PARAMETER(pTcpClient);
+	UNREFERENCED_PARAMETER(bufferSend);
+	UNREFERENCED_PARAMETER(dwReturnSize);
+	UNREFERENCED_PARAMETER(ec);
+}
+//==============================================================================
+void CTcpClientPrefix::clientConnected(
+	CTcpConnectedClient* const pTcpClient,
+	const std::error_code ec) noexcept
+{
+	UNREFERENCED_PARAMETER(pTcpClient);
+	UNREFERENCED_PARAMETER(ec);
+}
+//==============================================================================
+void CTcpClientPrefix::clientDisconnected(
+	CTcpConnectedClient* const pTcpClient,
+	const std::error_code ec) noexcept
+{
+	UNREFERENCED_PARAMETER(pTcpClient);
+	UNREFERENCED_PARAMETER(ec);
+}
+//==============================================================================
+void CTcpClientPrefix::serverConnected(
+	const std::error_code ec) noexcept
+{
+	UNREFERENCED_PARAMETER(ec);
+}
+//==============================================================================
+void CTcpClientPrefix::serverDisconnected(
+	const std::error_code ec) noexcept
+{
+	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
 CTcpClientPrefix::~CTcpServer()
