@@ -6,38 +6,49 @@ using CCounterScopedPrefix = wname::misc::CCounterScoped;
 CCounterScopedPrefix::CCounterScoped(
 	CCounter& counter,
 	const DWORD dwCount) noexcept
-	: _counter(counter), _dwCount(dwCount)
+:_counter(counter)
 {
-	for (DWORD i = 0; i < _dwCount; i++)
+	for (_dwIsStartOperation = 0; _dwIsStartOperation < dwCount; _dwIsStartOperation++)
 	{
-		_bIsStartOperation = _counter.startOperation();
-		if (!_bIsStartOperation)
+		if(!_counter.startOperation())
 		{
-			/** отменяем предыдущие */
-			for (DWORD j = 0; j < i; j++)
-			{
-				_counter.endOperation();
-			}
+			break;
 		}
+	}
+
+	if (_dwIsStartOperation != dwCount)
+	{
+		/** отменяем */
+		closeOperation(true);
 	}
 }
 //==============================================================================
 bool CCounterScopedPrefix::isStartOperation() const noexcept
 {
-	return _bIsStartOperation;
+	return _dwIsStartOperation > 0;
 }
 //==============================================================================
 void CCounterScopedPrefix::release() noexcept
 {
-	_bIsStartOperation = false;
+	closeOperation(false);
+}
+//==============================================================================
+void CCounterScopedPrefix::closeOperation(
+	const bool bIsEndOpertaion)
+{
+	if (bIsEndOpertaion)
+	{
+		/** завершаем все операции */
+		for (DWORD i = 0; i < _dwIsStartOperation; i++)
+		{
+			_counter.endOperation();
+		}
+	}
+	_dwIsStartOperation = 0;
 }
 //==============================================================================
 CCounterScopedPrefix::~CCounterScoped()
 {
-	if (_bIsStartOperation)
-	{
-		for (DWORD i = 0; i < _dwCount; i++)
-			_counter.endOperation();
-	}				
+	closeOperation(true);
 }
 //==============================================================================

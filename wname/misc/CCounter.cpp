@@ -144,11 +144,13 @@ void CCounterPrefix::release() noexcept
 {
 	bool isNeedWait = false;
 
-	/** отдельная область видимости для синхронизации */
-	cs::CCriticalSectionScoped lock(_csCounter);
+	{
+		/** отдельная область видимости для синхронизации */
+		cs::CCriticalSectionScoped lock(_csCounter);
 
-	_isCounterInitialize = false;
-	isNeedWait = _nCounterCount ? true : false;
+		_isCounterInitialize = false;
+		isNeedWait = _nCounterCount ? true : false;
+	}
 
 	if (isNeedWait)
 		_eventCounterFree.wait();

@@ -41,17 +41,26 @@ namespace misc
 	//==========================================================================
 	#pragma endregion
 
+	#pragma region Private_Method
+	private:
+	//==========================================================================
+		/**
+		* закрыть все операции.
+		* @param bIsEndOpertaion - завершить операции перед закрытием.
+		*/
+		WNAME void closeOperation(
+			const bool bIsEndOpertaion);
+	//==========================================================================
+	#pragma endregion
+
 	#pragma region Private_Data
 	private:
 	//==========================================================================
 		/** используемый счетчик */
 		CCounter& _counter;
 
-		/** количество повешанных ссылок */
-		const DWORD _dwCount;
-
 		/** успех старта счетчика */
-		std::atomic_bool _bIsStartOperation = false;
+		std::atomic_uint _dwIsStartOperation = 0;
 	//==========================================================================
 	#pragma endregion
 	};
