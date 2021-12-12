@@ -104,6 +104,10 @@ std::error_code CAsyncIoPrefix::startAsyncRead(
 		pAsyncOperation->_buffer._dwSize = dwBufferSize;
 		*(UINT64*)&pAsyncOperation->_overlapped.Offset = offset;
 
+		/** необходимая синхронизация для корректного отключения
+			во время выполняемых асинхронных операций */
+		cs::CCriticalSectionScoped lock(_csCounter);
+
 		if (!ReadFile(getHandle(),
 			pAsyncOperation->_buffer._p,
 			pAsyncOperation->_buffer._dwSize,
@@ -206,6 +210,10 @@ std::error_code CAsyncIoPrefix::startAsyncWrite(
 		pAsyncOperation->_buffer._p = bufferWrite;
 		pAsyncOperation->_buffer._dwSize = dwBufferSize;
 		*(UINT64*)&pAsyncOperation->_overlapped.Offset = offset;
+
+		/** необходимая синхронизация для корректного отключения
+			во время выполняемых асинхронных операций */
+		cs::CCriticalSectionScoped lock(_csCounter);
 
 		if (!WriteFile(getHandle(),
 			pAsyncOperation->_buffer._p,

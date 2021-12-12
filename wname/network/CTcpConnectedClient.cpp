@@ -204,7 +204,7 @@ void CTcpConnectedClientPrefix::disconnect(
 		{
 			/** еще не все операции отработали */
 			if (_nCountIoOperation > 0)
-				return;
+				break;
 
 			_eSocketState = ESocketStatePrefix::disconnected;
 			_socket.close();

@@ -122,8 +122,12 @@ void CTcpClientPrefix::disconnectServer(
 			break;
 		case ESocketStatePrefix::disconnecting:
 		{
-			if (_listClients.empty())
+			if (!_listClients.empty())
+			{
+				listClients = std::move(_listClients);
+				bIsRepeatDisconnect = true;
 				break;
+			}
 
 			_eSocketState = ESocketStatePrefix::disconnected;
 			ecDisconnected = _ec;
@@ -239,7 +243,6 @@ void CTcpClientPrefix::removeClient(
 CTcpClientPrefix::CTcpConnectedClient* CTcpClientPrefix::addClient()
 {
 	misc::CCounterScoped counter(*this);
-
 	if (!counter.isStartOperation())
 		return nullptr;
 
@@ -275,9 +278,6 @@ void CTcpClientPrefix::clientAcceptedEventHandler(
 
 	auto pParent = _this->_pParent;
 	std::error_code ec;
-
-	/** клиент подключен */
-	_this->_eSocketState = ESocketStatePrefix::connected;
 
 	/** проверяем на ошибку ожидания клиента */
 	if (pAsyncOperation->_ec.value())
@@ -322,6 +322,9 @@ void CTcpClientPrefix::clientAcceptedEventHandler(
 		pParent->endOperation();
 		return;
 	}
+
+	/** клиент подключен */
+	_this->_eSocketState = ESocketStatePrefix::connected;
 
 	/** передаем управление клиенту */
 	pParent->clientConnected(_this, ec);
@@ -469,7 +472,7 @@ void CTcpClientPrefix::serverDisconnected(
 //==============================================================================
 CTcpClientPrefix::~CTcpServer()
 {
-	/****отключаем */
+	/** отключаем */
 	disconnectServer();
 
 	/** ждем завершения всего */

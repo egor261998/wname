@@ -32,6 +32,10 @@ std::error_code CSocketIoPrefix::startAsyncRecv(
 		pAsyncOperation->_buffer._p = bufferRecv;
 		pAsyncOperation->_buffer._dwSize = dwBufferSize;
 
+		/** необходимая синхронизация для корректного отключения 
+			во время выполняемых асинхронных операций */
+		cs::CCriticalSectionScoped lock(_csCounter);
+
 		if (WSARecv((SOCKET)getHandle(),
 			&pAsyncOperation->_wsaBuffer,
 			1,
@@ -138,6 +142,10 @@ std::error_code CSocketIoPrefix::startAsyncSend(
 
 		pAsyncOperation->_buffer._p = bufferSend;
 		pAsyncOperation->_buffer._dwSize = dwBufferSize;
+
+		/** необходимая синхронизация для корректного отключения
+			во время выполняемых асинхронных операций */
+		cs::CCriticalSectionScoped lock(_csCounter);
 
 		if (WSASend((SOCKET)getHandle(),
 			&pAsyncOperation->_wsaBuffer,
