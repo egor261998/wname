@@ -15,6 +15,10 @@ _pParent(pParent)
 
 	try
 	{
+		misc::CCounterScoped counter(*_pParent);
+		if (!counter.isStartOperation())
+			throw std::logic_error("Server is not start");
+
 		_socket = socket::CSocketHandle(SOCK_STREAM, IPPROTO_TCP);
 
 		if (!_socket.isValid())
@@ -26,6 +30,7 @@ _pParent(pParent)
 		}
 
 		initialize(_socket);
+		counter.release();
 	}
 	catch (const std::exception& ex)
 	{
@@ -181,54 +186,76 @@ std::error_code CTcpConnectedClientPrefix::startRecv(
 void CTcpConnectedClientPrefix::disconnect(
 	const std::error_code ec) noexcept
 {
-	cs::CCriticalSectionScoped lock(_csCounter);
+	/** счетчик операций для корректного завершения контекста */
+	misc::CCounterScoped counter(*this);
 
-	switch (_eSocketState)
+	bool bIsRepeatDisconnect = false;
+	bool bIsDisconnected = false;
+	std::error_code ecDisconnected;
+
 	{
-	case ESocketStatePrefix::disconnected:
-		break;
-	case ESocketStatePrefix::disconnecting:
-	{
-		/** еще не все операции отработали */
-		if (_nCountIoOperation > 0)
-			return;
+		cs::CCriticalSectionScoped lock(_csCounter);
 
-		_eSocketState = ESocketStatePrefix::disconnected;
-		_socket.close();
-
-		/** просто закрываемся */
-		_pParent->clientDisconnected(this, _ec);
-		_pParent->removeClient(this);
-
-		break;
-	}
-	case ESocketStatePrefix::connecting:
-		break;
-	case ESocketStatePrefix::connected:
-	{
-		_eSocketState = ESocketStatePrefix::disconnecting;
-		_ec = ec;
-
-		try
+		switch (_eSocketState)
 		{
-			if (!_socket.getDisconnectex()(_socket, nullptr, 0, 0))
+		case ESocketStatePrefix::disconnected:
+			break;
+		case ESocketStatePrefix::disconnecting:
+		{
+			/** еще не все операции отработали */
+			if (_nCountIoOperation > 0)
+				return;
+
+			_eSocketState = ESocketStatePrefix::disconnected;
+			_socket.close();
+
+			/** просто закрываемся */
+			ecDisconnected = _ec;
+			bIsDisconnected = true;
+
+			break;
+		}
+		case ESocketStatePrefix::connecting:
+			break;
+		case ESocketStatePrefix::connected:
+		{
+			_eSocketState = ESocketStatePrefix::disconnecting;
+			_ec = ec;
+
+			try
 			{
-				if (!_ec)
-					_ec = std::error_code(WSAGetLastError(), std::system_category());
+				if (!_socket.getDisconnectex()(_socket, nullptr, 0, 0))
+				{
+					if (!_ec)
+						_ec = std::error_code(WSAGetLastError(), std::system_category());
+				}
 			}
-		}
-		catch (const std::exception& ex)
-		{
-			_pIocp->log(logger::EMessageType::warning, ex);
-		}
+			catch (const std::exception& ex)
+			{
+				_pIocp->log(logger::EMessageType::warning, ex);
+			}
 
-		shutdown(_socket, SD_BOTH);
-		CancelIoEx(_socket, nullptr);
-		disconnect();
-		break;
+			shutdown(_socket, SD_BOTH);
+			CancelIoEx(_socket, nullptr);
+			bIsRepeatDisconnect = true;
+			break;
+		}
+		default:
+			break;
+		}
 	}
-	default:
-		break;
+
+	if (bIsRepeatDisconnect)
+	{
+		/** повторное отключение */
+		disconnect();
+	}
+
+	if (bIsDisconnected)
+	{
+		/** отключаем клиента */
+		_pParent->clientDisconnected(this, ecDisconnected);
+		_pParent->removeClient(this);
 	}
 }
 //==============================================================================
@@ -266,10 +293,10 @@ void CTcpConnectedClientPrefix::asyncRecvComplitionHandler(
 //==============================================================================
 CTcpConnectedClientPrefix::~CTcpConnectedClient()
 {
-	/** отключаем */
-	disconnect();
-
 	/** ждем завершения всего */
 	release();
+
+	/** снимаем ссылку с сервера */
+	_pParent->endOperation();
 }
 //==============================================================================

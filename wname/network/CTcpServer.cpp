@@ -105,54 +105,88 @@ std::error_code CTcpClientPrefix::connectServer()
 void CTcpClientPrefix::disconnectServer(
 	const std::error_code ec) noexcept
 {
-	cs::CCriticalSectionScoped lock(_csCounter);
+	/** счетчик операций для корректного завершения контекста */
+	misc::CCounterScoped counter(*this);
 
-	switch (_eSocketState)
-	{
-	case ESocketStatePrefix::disconnected:
-		break;
-	case ESocketStatePrefix::disconnecting:
-	{
-		if (_listClients.empty())
-			return;
+	bool bIsRepeatDisconnect = false;
+	bool bIsDisconnected = false;
+	std::unordered_map<CTcpConnectedClient*, std::unique_ptr<CTcpConnectedClient>> listClients;
+	std::error_code ecDisconnected;
 
-		_eSocketState = ESocketStatePrefix::disconnected;
-		serverDisconnected(_ec);
-		break;
+	{
+		cs::CCriticalSectionScoped lock(_csCounter);
+
+		switch (_eSocketState)
+		{
+		case ESocketStatePrefix::disconnected:
+			break;
+		case ESocketStatePrefix::disconnecting:
+		{
+			if (_listClients.empty())
+				break;
+
+			_eSocketState = ESocketStatePrefix::disconnected;
+			ecDisconnected = _ec;
+			bIsDisconnected = true;
+			break;
+		}
+		case ESocketStatePrefix::connecting:
+			break;
+		case ESocketStatePrefix::connected:
+		{
+			_eSocketState = ESocketStatePrefix::disconnecting;
+			_ec = ec;
+
+			shutdown(_socket, SD_BOTH);
+			CancelIoEx(_socket, nullptr);
+			listClients = std::move(_listClients);
+			bIsRepeatDisconnect = true;
+			break;
+		}
+		default:
+			break;
+		}
 	}
-	case ESocketStatePrefix::connecting:
-		break;
-	case ESocketStatePrefix::connected:
-	{
-		_eSocketState = ESocketStatePrefix::disconnecting;
-		_ec = ec;
 
-		shutdown(_socket, SD_BOTH);
-		CancelIoEx(_socket, nullptr);
+	if (bIsRepeatDisconnect)
+	{
 		try
 		{
 			/** сворачиваем всех клиентов */
-			for (auto it = _listClients.begin(); it != _listClients.end(); )
+			for (auto it = listClients.begin(); it != listClients.end(); )
 			{
 				auto itCur = it;
 				it++;
-
 				itCur->second.release();
+				const auto pClient = itCur->first;
+				assert(pClient != nullptr);
 
-				itCur->first->deleteAfterEndOperation();
-				itCur->first->disconnect();
+				listClients.erase(itCur);
+
+				/** высвобождаем клиента */
+				misc::CCounterScoped counterClient(*pClient);
+				if (counterClient.isStartOperation())
+				{
+					pClient->disconnect();
+					pClient->deleteAfterEndOperation();
+				}		
+
+				endOperation();
 			}
 		}
 		catch (const std::exception& ex)
 		{
 			_pIocp->log(logger::EMessageType::warning, ex);
 		}
-		
+
+		/** повторное отключение */
 		disconnectServer();
-		break;
 	}
-	default:
-		break;
+
+	if (bIsDisconnected)
+	{
+		/** отключаем сервер*/
+		serverDisconnected(ecDisconnected);
 	}
 }
 //==============================================================================
@@ -162,31 +196,44 @@ void CTcpClientPrefix::removeClient(
 	if (pClient == nullptr)
 		return;
 
-	cs::CCriticalSectionScoped lock(_csCounter);
 	bool bAlreadyDelete = true;
+	bool bIsRepeatDisconnect = false;
 
-	try
-	{	
-		if (const auto& it = _listClients.find(pClient); it != _listClients.end())
-		{
-			bAlreadyDelete = false;
-			pClient->deleteAfterEndOperation();
-			it->second.release();
-			_listClients.erase(it);
-		}
-	}
-	catch (const std::exception& ex)
 	{
-		_pIocp->log(logger::EMessageType::critical, ex);
+		cs::CCriticalSectionScoped lock(_csCounter);		
+
+		try
+		{
+			if (const auto& it = _listClients.find(pClient); it != _listClients.end())
+			{
+				bAlreadyDelete = false;
+
+				it->second.release();
+				_listClients.erase(it);
+			}
+		}
+		catch (const std::exception& ex)
+		{
+			_pIocp->log(logger::EMessageType::critical, ex);
+		}
+
+		/** если сервер в стадии отключения, то нужно изменить статус */
+		bIsRepeatDisconnect = _eSocketState == ESocketStatePrefix::disconnecting;
 	}
 
-	/** если сервер в стадии отключения, то нужно изменить статус */
-	if (_eSocketState == ESocketStatePrefix::disconnecting)
+	if (bIsRepeatDisconnect)
+	{
+		/** повторное отключение */
 		disconnectServer();
+	}
 
 	/** снимаем ссылку, клиента больше нет в списке */
-	if(!bAlreadyDelete)
+	if (!bAlreadyDelete)
+	{
+		pClient->disconnect();
+		pClient->deleteAfterEndOperation();
 		endOperation();
+	}
 }
 //==============================================================================
 CTcpClientPrefix::CTcpConnectedClient* CTcpClientPrefix::addClient()

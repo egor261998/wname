@@ -224,83 +224,105 @@ std::error_code CTcpClientPrefix::startRecv(
 void CTcpClientPrefix::disconnect(
 	const std::error_code ec) noexcept
 {
-	cs::CCriticalSectionScoped lock(_csCounter);
+	/** счетчик операций для корректного завершения контекста */
+	misc::CCounterScoped counter(*this);
 
-	switch (_eSocketState)
+	bool bIsRepeatDisconnect = false;
+	bool bIsDisconnected = false;
+	std::error_code ecDisconnected;
+
 	{
-	case ESocketStatePrefix::disconnected:
-		break;
-	case ESocketStatePrefix::disconnecting:
-	{
-		/** еще не все операции отработали */
-		if (_nCountIoOperation > 0)
-			return;
+		cs::CCriticalSectionScoped lock(_csCounter);
 
-		_eSocketState = ESocketStatePrefix::disconnected;
-		misc::CCounterScoped counter(*this);
-
-		if (!counter.isStartOperation())
+		switch (_eSocketState)
 		{
-			/** просто закрываемся */
-			clientDisconnected(std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category()));
-			return;
-		}
-
-		try
+		case ESocketStatePrefix::disconnected:
+			break;
+		case ESocketStatePrefix::disconnecting:
 		{
-			/** пересоздаем сокет */
-			_socket = socket::CSocketHandle(SOCK_STREAM, IPPROTO_TCP);
+			/** еще не все операции отработали */
+			if (_nCountIoOperation > 0)
+				break;
 
-			if (!_socket.isValid())
+			_eSocketState = ESocketStatePrefix::disconnected;
+			if (!counter.isStartOperation())
 			{
-				clientDisconnected(
-					std::error_code(WSAGetLastError(), std::system_category()));
-				return;
+				/** просто закрываемся */
+				ecDisconnected = std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+				bIsDisconnected = true;
+				break;
 			}
 
-			/** пробуем пересоздать сокет */
-			changeHandle(_socket);		
+			try
+			{
+				/** пересоздаем сокет */
+				_socket = socket::CSocketHandle(SOCK_STREAM, IPPROTO_TCP);
 
-			/** скидываем именно ту ошибку, которая инициировала отключение */
-			clientDisconnected(_ec);
+				if (!_socket.isValid())
+				{
+					ecDisconnected = std::error_code(WSAGetLastError(), std::system_category());
+					bIsDisconnected = true;
+					break;
+				}
+
+				/** пробуем пересоздать сокет */
+				changeHandle(_socket);
+
+				/** скидываем именно ту ошибку, которая инициировала отключение */
+				ecDisconnected = _ec;
+				bIsDisconnected = true;
+			}
+			catch (const std::exception& ex)
+			{
+				/** просто закрываемся */
+				_pIocp->log(logger::EMessageType::warning, ex);
+
+				ecDisconnected = std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+				bIsDisconnected = true;
+			}
+
+			break;
 		}
-		catch (const std::exception& ex)
+		case ESocketStatePrefix::connecting:
+			break;
+		case ESocketStatePrefix::connected:
 		{
-			/** просто закрываемся */
-			_pIocp->log(logger::EMessageType::warning, ex);
+			_eSocketState = ESocketStatePrefix::disconnecting;
+			_ec = ec;
 
-			clientDisconnected(std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category()));
+			try
+			{
+				if (!_socket.getDisconnectex()(_socket, nullptr, 0, 0))
+				{
+					if (!_ec)
+						_ec = std::error_code(WSAGetLastError(), std::system_category());
+				}
+			}
+			catch (const std::exception& ex)
+			{
+				_pIocp->log(logger::EMessageType::warning, ex);
+			}
+
+			shutdown(_socket, SD_BOTH);
+			CancelIoEx(_socket, nullptr);
+			bIsRepeatDisconnect = true;
+			break;
 		}
-
-		break;
+		default:
+			break;
+		}
 	}
-	case ESocketStatePrefix::connecting:
-		break;
-	case ESocketStatePrefix::connected:
-	{
-		_eSocketState = ESocketStatePrefix::disconnecting;
-		_ec = ec;
 
-		try
-		{
-			if (!_socket.getDisconnectex()(_socket, nullptr, 0, 0))
-			{
-				if (!_ec)
-					_ec = std::error_code(WSAGetLastError(), std::system_category());
-			}
-		}
-		catch (const std::exception& ex)
-		{
-			_pIocp->log(logger::EMessageType::warning, ex);
-		}
-		
-		shutdown(_socket, SD_BOTH);
-		CancelIoEx(_socket, nullptr);
+	if (bIsRepeatDisconnect)
+	{
+		/** повторное отключение */
 		disconnect();
-		break;
 	}
-	default:
-		break;
+
+	if (bIsDisconnected)
+	{
+		/** отключаем клиента */
+		clientDisconnected(ecDisconnected);
 	}
 }
 //==============================================================================
