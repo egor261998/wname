@@ -48,35 +48,8 @@ bool CCounterPrefix::endOperation() noexcept
 		assert(_nCounterCount > 0);
 		_nCounterCount--;
 		
-		/** проверка произвольного ожидания */		
-		if (!_counterWait.empty())
-		{
-			try
-			{
-				if (const auto& it = _counterWait.find(_nCounterCount);
-					it != _counterWait.end())
-				{
-					for (const auto& ev : it->second)
-					{
-						ev.notify();
-					}
-
-					_counterWait.erase(it);
-				}
-			}
-			catch (const std::exception& ex)
-			{
-				UNREFERENCED_PARAMETER(ex);
-
-				/** смерть */
-				assert(false);
-			}
-		}	
-
-		/** завершение последней асинхронной операции */
-		bResultFree =
-			_nCounterCount == 0 && !_isCounterInitialize;
-		isDelete = _isDeleteAfterEndOperation && !checkOperation();
+		/** обработка операции */
+		processingOperation(bResultFree, isDelete);
 	}
 
 	if (bResultFree)
@@ -89,6 +62,43 @@ bool CCounterPrefix::endOperation() noexcept
 	}
 
 	return bResultFree;
+}
+//==============================================================================
+void CCounterPrefix::processingOperation(
+	bool& bResultFree,
+	bool& isDelete) noexcept
+{
+	cs::CCriticalSectionScoped lock(_csCounter);
+
+	/** проверка произвольного ожидания */
+	if (!_counterWait.empty())
+	{
+		try
+		{
+			if (const auto& it = _counterWait.find(_nCounterCount);
+				it != _counterWait.end())
+			{
+				for (const auto& ev : it->second)
+				{
+					ev.notify();
+				}
+
+				_counterWait.erase(it);
+			}
+		}
+		catch (const std::exception& ex)
+		{
+			UNREFERENCED_PARAMETER(ex);
+
+			/** смерть */
+			assert(false);
+		}
+	}
+
+	/** завершение последней асинхронной операции */
+	bResultFree =
+		_nCounterCount == 0 && !_isCounterInitialize;
+	isDelete = _isDeleteAfterEndOperation && !checkOperation();
 }
 //==============================================================================
 bool CCounterPrefix::checkOperation(
@@ -156,11 +166,29 @@ void CCounterPrefix::release() noexcept
 		_eventCounterFree.wait();
 }
 //==============================================================================
-void CCounterPrefix::deleteAfterEndOperation() noexcept
+bool CCounterPrefix::deleteAfterEndOperation() noexcept
 {
-	cs::CCriticalSectionScoped lock(_csCounter);
+	bool bResultFree = false;
+	bool isDelete = false;
+	{
+		cs::CCriticalSectionScoped lock(_csCounter);
 
-	_isDeleteAfterEndOperation = true;
+		_isDeleteAfterEndOperation = true;
+
+		/** обработка операции */
+		processingOperation(bResultFree, isDelete);
+	}
+
+	if (bResultFree)
+		_eventCounterFree.notify();
+
+	if (isDelete)
+	{
+		/** увольняемся */
+		delete this;
+	}
+
+	return isDelete;
 }
 //==============================================================================
 CCounterPrefix::~CCounter()

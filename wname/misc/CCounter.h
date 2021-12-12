@@ -58,8 +58,9 @@ namespace misc
 	//==========================================================================
 		/**
 		* удаление объекта после того как отработает последняя операция.
+		* @return - объект удалился.
 		*/
-		WNAME void deleteAfterEndOperation() noexcept;
+		WNAME bool deleteAfterEndOperation() noexcept;
 	//==========================================================================
 		/**
 		* деструктор.
@@ -70,6 +71,20 @@ namespace misc
 		CCounter(CCounter&&) = delete;
 		CCounter& operator=(const CCounter&) = delete;
 		CCounter& operator=(CCounter&&) = delete;
+	//==========================================================================
+	#pragma endregion
+
+	#pragma region Private_Method
+	private:
+	//==========================================================================		
+		/**
+		* обработка операции.
+		* @param bResultFree - признак завершения.
+		* @param isDelete - нужно ли удалять объект.
+		*/
+		WNAME void processingOperation(
+			bool& bResultFree,
+			bool& isDelete) noexcept;
 	//==========================================================================
 	#pragma endregion
 
