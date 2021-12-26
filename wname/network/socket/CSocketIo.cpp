@@ -32,10 +32,13 @@ std::error_code CSocketIoPrefix::startAsyncRecv(
 		pAsyncOperation->_buffer._p = bufferRecv;
 		pAsyncOperation->_buffer._dwSize = dwBufferSize;
 
-		/** необходимая синхронизация для корректного отключения 
+		{
+			/** необходимая синхронизация для корректного отключения
 			во время выполняемых асинхронных операций */
-		cs::CCriticalSectionScoped lock(_csCounter);
-
+			cs::CCriticalSectionScoped lock(_csCounter);
+			_nCountIoOperation++;
+		}
+		
 		if (WSARecv((SOCKET)getHandle(),
 			&pAsyncOperation->_wsaBuffer,
 			1,
@@ -48,12 +51,13 @@ std::error_code CSocketIoPrefix::startAsyncRecv(
 
 			if (dwResult != ERROR_IO_PENDING)
 			{
+				cs::CCriticalSectionScoped lock(_csCounter);
+				_nCountIoOperation--;
 				pAsyncOperation->cancel();
 				return std::error_code(dwResult, std::system_category());
 			}
 		}
 
-		_nCountIoOperation++;
 		counter.release();
 		return std::error_code();
 	}
@@ -143,9 +147,12 @@ std::error_code CSocketIoPrefix::startAsyncSend(
 		pAsyncOperation->_buffer._p = bufferSend;
 		pAsyncOperation->_buffer._dwSize = dwBufferSize;
 
-		/** необходимая синхронизация для корректного отключения
+		{
+			/** необходимая синхронизация для корректного отключения
 			во время выполняемых асинхронных операций */
-		cs::CCriticalSectionScoped lock(_csCounter);
+			cs::CCriticalSectionScoped lock(_csCounter);
+			_nCountIoOperation++;
+		}
 
 		if (WSASend((SOCKET)getHandle(),
 			&pAsyncOperation->_wsaBuffer,
@@ -159,12 +166,13 @@ std::error_code CSocketIoPrefix::startAsyncSend(
 
 			if (dwResult != ERROR_IO_PENDING)
 			{
+				cs::CCriticalSectionScoped lock(_csCounter);
+				_nCountIoOperation--;
 				pAsyncOperation->cancel();
 				return std::error_code(dwResult, std::system_category());
 			}
 		}
 
-		_nCountIoOperation++;
 		counter.release();
 		return std::error_code();
 	}
