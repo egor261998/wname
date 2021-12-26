@@ -340,10 +340,9 @@ void CTcpClientPrefix::asyncSendComplitionHandler(
 {
 	assert(bufferSend != nullptr);
 
+	clientAsyncSendComplitionHandler(bufferSend, dwReturnSize, ec);
 	if (ec)
 		disconnect(ec);
-
-	clientAsyncSendComplitionHandler(bufferSend, dwReturnSize, ec);
 
 	endOperation();
 }
@@ -355,10 +354,9 @@ void CTcpClientPrefix::asyncRecvComplitionHandler(
 {
 	assert(bufferRecv != nullptr);
 
+	clientAsyncRecvComplitionHandler(bufferRecv, dwReturnSize, ec);
 	if (ec)
 		disconnect(ec);
-
-	clientAsyncRecvComplitionHandler(bufferRecv, dwReturnSize, ec);
 
 	endOperation();
 }

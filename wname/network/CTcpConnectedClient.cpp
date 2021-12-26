@@ -266,11 +266,10 @@ void CTcpConnectedClientPrefix::asyncSendComplitionHandler(
 {
 	assert(bufferSend != nullptr);
 
-	if (ec)
-		disconnect(ec);
-
 	_pParent->clientAsyncSendComplite(
 		this, bufferSend, dwReturnSize, ec);
+	if (ec)
+		disconnect(ec);
 
 	endOperation();
 }
@@ -282,11 +281,10 @@ void CTcpConnectedClientPrefix::asyncRecvComplitionHandler(
 {
 	assert(bufferRecv);
 
-	if (ec)
-		disconnect(ec);
-
 	_pParent->clientAsyncRecvComplite(
 		this, bufferRecv, dwReturnSize, ec);
+	if (ec)
+		disconnect(ec);
 
 	endOperation();
 }
