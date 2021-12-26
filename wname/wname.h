@@ -72,3 +72,7 @@
 #include "network\CTcpClient.h"
 #include "network\CTcpServer.h"
 #include "network\CTcpConnectedClient.h"
+
+/** продвинутое взаимодействие с сетью */
+#include "network\ITcpMultiSessionProtocol.h"
+#include "network\CTcpMultiSessionClient.h"

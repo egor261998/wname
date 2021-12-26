@@ -339,6 +339,8 @@
     <ClInclude Include="misc\CThreadTls.h" />
     <ClInclude Include="network\CTcpClient.h" />
     <ClInclude Include="network\CTcpConnectedClient.h" />
+    <ClInclude Include="network\CTcpMultiSessionClient.h" />
+    <ClInclude Include="network\ITcpMultiSessionProtocol.h" />
     <ClInclude Include="network\CTcpServer.h" />
     <ClInclude Include="network\socket\CSocketAdress.h" />
     <ClInclude Include="network\socket\CSocketHandle.h" />
@@ -367,7 +369,9 @@
     <ClCompile Include="misc\CCounterScoped.cpp" />
     <ClCompile Include="network\CTcpClient.cpp" />
     <ClCompile Include="network\CTcpConnectedClient.cpp" />
+    <ClCompile Include="network\CTcpMultiSessionClient.cpp" />
     <ClCompile Include="network\CTcpServer.cpp" />
+    <ClCompile Include="network\ITcpMultiSessionProtocol.cpp" />
     <ClCompile Include="network\socket\CSocketAdress.cpp" />
     <ClCompile Include="network\socket\CSocketHandle.cpp" />
     <ClCompile Include="network\socket\CSocketIo.cpp" />

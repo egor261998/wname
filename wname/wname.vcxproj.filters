@@ -84,6 +84,12 @@
     <ClInclude Include="network\CTcpConnectedClient.h">
       <Filter>network</Filter>
     </ClInclude>
+    <ClInclude Include="network\ITcpMultiSessionProtocol.h">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="network\CTcpMultiSessionClient.h">
+      <Filter>network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="logger">
@@ -185,6 +191,12 @@
       <Filter>network</Filter>
     </ClCompile>
     <ClCompile Include="network\CTcpConnectedClient.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="network\ITcpMultiSessionProtocol.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="network\CTcpMultiSessionClient.cpp">
       <Filter>network</Filter>
     </ClCompile>
   </ItemGroup>
