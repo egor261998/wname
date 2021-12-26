@@ -168,14 +168,8 @@ void CTcpClientPrefix::disconnectServer(
 				listClients.erase(itCur);
 
 				/** высвобождаем клиента */
-				misc::CCounterScoped counterClient(*pClient);
-				if (counterClient.isStartOperation())
-				{
-					pClient->disconnect();
-					pClient->deleteAfterEndOperation();
-				}		
-
-				endOperation();
+				pClient->disconnect();
+				pClient->deleteAfterEndOperation();				
 			}
 		}
 		catch (const std::exception& ex)
@@ -236,7 +230,6 @@ void CTcpClientPrefix::removeClient(
 	{
 		pClient->disconnect();
 		pClient->deleteAfterEndOperation();
-		endOperation();
 	}
 }
 //==============================================================================
@@ -254,7 +247,6 @@ CTcpClientPrefix::CTcpConnectedClient* CTcpClientPrefix::addClient()
 		const auto p = pClient.get();
 		_listClients[p] = std::move(pClient);
 
-		counter.release();
 		return p;
 	}
 	catch (const std::exception& ex)
