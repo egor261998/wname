@@ -49,7 +49,7 @@ namespace misc
 		* @param bIsEndOpertaion - завершить операции перед закрытием.
 		*/
 		WNAME void closeOperation(
-			const bool bIsEndOpertaion);
+			const bool bIsEndOpertaion) noexcept;
 	//==========================================================================
 	#pragma endregion
 

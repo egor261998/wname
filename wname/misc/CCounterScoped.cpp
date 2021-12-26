@@ -34,7 +34,7 @@ void CCounterScopedPrefix::release() noexcept
 }
 //==============================================================================
 void CCounterScopedPrefix::closeOperation(
-	const bool bIsEndOpertaion)
+	const bool bIsEndOpertaion) noexcept
 {
 	if (bIsEndOpertaion)
 	{
