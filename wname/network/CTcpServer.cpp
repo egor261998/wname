@@ -240,6 +240,13 @@ CTcpClientPrefix::CTcpConnectedClient* CTcpClientPrefix::addClient()
 		return nullptr;
 
 	cs::CCriticalSectionScoped lock(_csCounter);
+	
+	if (_eSocketState != ESocketStatePrefix::connected &&
+		_eSocketState != ESocketStatePrefix::connecting)
+	{
+		/** сервер не включен , сваливаем */
+		return nullptr;
+	}
 
 	try
 	{
@@ -276,6 +283,8 @@ void CTcpClientPrefix::clientAcceptedEventHandler(
 	{
 		/** приложение инициировало выход */
 		pParent->removeClient(_this);
+		_this->endOperation();
+
 		pParent->disconnectServer(pAsyncOperation->_ec);
 		pParent->endOperation();
 		return;
@@ -310,6 +319,8 @@ void CTcpClientPrefix::clientAcceptedEventHandler(
 
 		ec = std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
 		pParent->removeClient(_this);
+		_this->endOperation();
+
 		pParent->disconnectServer(ec);
 		pParent->endOperation();
 		return;
@@ -325,6 +336,8 @@ void CTcpClientPrefix::clientAcceptedEventHandler(
 		_this->disconnect(ec);
 		pParent->disconnectServer(ec);
 	}
+
+	_this->endOperation();
 	pParent->endOperation();
 }
 //==============================================================================
@@ -358,27 +371,43 @@ std::error_code CTcpClientPrefix::startListen()
 			pAsyncOperation->_pCompletionRoutineContext = pClient;
 			pAsyncOperation->_buffer._p = &pClient->_bufferConnect[0];
 			pAsyncOperation->_buffer._dwSize = sizeof(pClient->_bufferConnect);
-
-			/** пробуем встать на ожидание */
-			if (!_socket.getAcceptEx()(
-				_socket,
-				pClient->_socket,
-				pAsyncOperation->_buffer._p,
-				0,
-				sizeof(pClient->_bufferConnect) / 2,
-				sizeof(pClient->_bufferConnect) / 2,
-				&pAsyncOperation->_dwReturnSize,
-				&pAsyncOperation->_overlapped))
+		
+			try
 			{
-				const DWORD dwError = WSAGetLastError();
-
-				if (dwError != ERROR_IO_PENDING)
+				/** ссылка на операцию подключения клиента */
+				if (!pClient->startOperation())
 				{
 					removeClient(pClient);
+					pAsyncOperation->cancel();
+					return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+				}
 
-					return std::error_code(dwError, std::system_category());
+				/** пробуем встать на ожидание */
+				if (!_socket.getAcceptEx()(
+					_socket,
+					pClient->_socket,
+					pAsyncOperation->_buffer._p,
+					0,
+					sizeof(pClient->_bufferConnect) / 2,
+					sizeof(pClient->_bufferConnect) / 2,
+					&pAsyncOperation->_dwReturnSize,
+					&pAsyncOperation->_overlapped))
+				{
+					const DWORD dwError = WSAGetLastError();
+
+					if (dwError != ERROR_IO_PENDING)
+					{
+						removeClient(pClient);
+						pAsyncOperation->cancel();
+						return std::error_code(dwError, std::system_category());
+					}
 				}
 			}
+			catch (const std::exception&)
+			{
+				removeClient(pClient);
+				throw;
+			}		
 
 			counter.release();
 			return std::error_code();
