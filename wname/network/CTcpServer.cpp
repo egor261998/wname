@@ -110,7 +110,7 @@ void CTcpClientPrefix::disconnectServer(
 
 	bool bIsRepeatDisconnect = false;
 	bool bIsDisconnected = false;
-	std::unordered_map<CTcpConnectedClient*, std::unique_ptr<CTcpConnectedClient>> listClients;
+	std::unordered_map<CTcpConnectedClient*, std::shared_ptr<CTcpConnectedClient>> listClients;
 	std::error_code ecDisconnected;
 
 	{
@@ -157,20 +157,7 @@ void CTcpClientPrefix::disconnectServer(
 		try
 		{
 			/** сворачиваем всех клиентов */
-			for (auto it = listClients.begin(); it != listClients.end(); )
-			{
-				auto itCur = it;
-				it++;
-				itCur->second.release();
-				const auto pClient = itCur->first;
-				assert(pClient != nullptr);
-
-				listClients.erase(itCur);
-
-				/** высвобождаем клиента */
-				pClient->disconnect();
-				pClient->deleteAfterEndOperation();				
-			}
+			listClients.clear();
 		}
 		catch (const std::exception& ex)
 		{
@@ -194,8 +181,8 @@ void CTcpClientPrefix::removeClient(
 	if (pClient == nullptr)
 		return;
 
-	bool bAlreadyDelete = true;
-	bool bIsRepeatDisconnect = false;
+	bool bIsRepeatDisconnect = true;
+	std::shared_ptr<CTcpConnectedClient> pClientPtr;
 
 	{
 		cs::CCriticalSectionScoped lock(_csCounter);		
@@ -204,9 +191,7 @@ void CTcpClientPrefix::removeClient(
 		{
 			if (const auto& it = _listClients.find(pClient); it != _listClients.end())
 			{
-				bAlreadyDelete = false;
-
-				it->second.release();
+				pClientPtr = std::move(it->second);
 				_listClients.erase(it);
 			}
 		}
@@ -219,17 +204,13 @@ void CTcpClientPrefix::removeClient(
 		bIsRepeatDisconnect = _eSocketState == ESocketStatePrefix::disconnecting;
 	}
 
+	/** сброс клиента */
+	pClientPtr.reset();
+
 	if (bIsRepeatDisconnect)
 	{
 		/** повторное отключение */
 		disconnectServer();
-	}
-
-	/** снимаем ссылку, клиента больше нет в списке */
-	if (!bAlreadyDelete)
-	{
-		pClient->disconnect();
-		pClient->deleteAfterEndOperation();
 	}
 }
 //==============================================================================
@@ -250,7 +231,13 @@ CTcpClientPrefix::CTcpConnectedClient* CTcpClientPrefix::addClient()
 
 	try
 	{
-		auto pClient = createClient();
+		auto pClient = std::shared_ptr<CTcpConnectedClient>(
+			createClient().release(),
+			[](CTcpConnectedClient* pClient) noexcept
+			{
+				pClient->disconnect();
+				pClient->deleteAfterEndOperation();
+			});
 		const auto p = pClient.get();
 		_listClients[p] = std::move(pClient);
 

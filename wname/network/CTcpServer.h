@@ -160,7 +160,7 @@ namespace network
 		socket::CSocketHandle _socket;
 
 		/** подключенные клиенты */
-		std::unordered_map<CTcpConnectedClient*, std::unique_ptr<CTcpConnectedClient>> _listClients;
+		std::unordered_map<CTcpConnectedClient*, std::shared_ptr<CTcpConnectedClient>> _listClients;
 	
 		/** ошибка */
 		std::error_code _ec;
