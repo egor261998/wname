@@ -233,8 +233,11 @@ CTcpClientPrefix::CTcpConnectedClient* CTcpClientPrefix::addClient()
 	{
 		auto pClient = std::shared_ptr<CTcpConnectedClient>(
 			createClient().release(),
-			[](CTcpConnectedClient* pClient) noexcept
+			[](CTcpConnectedClient* const pClient) noexcept
 			{
+				if (pClient != nullptr)
+					return;
+
 				pClient->disconnect();
 				pClient->deleteAfterEndOperation();
 			});
