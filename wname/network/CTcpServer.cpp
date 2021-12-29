@@ -320,7 +320,7 @@ void CTcpClientPrefix::clientAcceptedEventHandler(
 	_this->_eSocketState = ESocketStatePrefix::connected;
 
 	/** передаем управление клиенту */
-	pParent->clientConnected(_this, ec);
+	_this->clientConnected(ec);
 	if (ec)
 	{
 		_this->disconnect(ec);
@@ -427,46 +427,6 @@ std::unique_ptr<CTcpClientPrefix::CTcpConnectedClient> CTcpClientPrefix::createC
 		_pIocp->log(logger::EMessageType::critical, ex);
 		throw;
 	}
-}
-//==============================================================================
-void CTcpClientPrefix::clientAsyncRecvComplite(
-	CTcpConnectedClient* const pTcpClient,
-	const PBYTE bufferRecv,
-	const DWORD dwReturnSize,
-	const std::error_code ec) noexcept
-{
-	UNREFERENCED_PARAMETER(pTcpClient);
-	UNREFERENCED_PARAMETER(bufferRecv);
-	UNREFERENCED_PARAMETER(dwReturnSize);
-	UNREFERENCED_PARAMETER(ec);
-}
-//==============================================================================
-void CTcpClientPrefix::clientAsyncSendComplite(
-	CTcpConnectedClient* const pTcpClient,
-	const PBYTE bufferSend,
-	const DWORD dwReturnSize,
-	const std::error_code ec) noexcept
-{
-	UNREFERENCED_PARAMETER(pTcpClient);
-	UNREFERENCED_PARAMETER(bufferSend);
-	UNREFERENCED_PARAMETER(dwReturnSize);
-	UNREFERENCED_PARAMETER(ec);
-}
-//==============================================================================
-void CTcpClientPrefix::clientConnected(
-	CTcpConnectedClient* const pTcpClient,
-	const std::error_code ec) noexcept
-{
-	UNREFERENCED_PARAMETER(pTcpClient);
-	UNREFERENCED_PARAMETER(ec);
-}
-//==============================================================================
-void CTcpClientPrefix::clientDisconnected(
-	CTcpConnectedClient* const pTcpClient,
-	const std::error_code ec) noexcept
-{
-	UNREFERENCED_PARAMETER(pTcpClient);
-	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
 void CTcpClientPrefix::serverConnected(

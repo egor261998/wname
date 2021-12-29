@@ -3,7 +3,6 @@
 using CTcpConnectedClientPrefix = wname::network::CTcpServer::CTcpConnectedClient;
 using ESocketStatePrefix = wname::network::socket::ESocketState;
 
-
 //==============================================================================
 CTcpConnectedClientPrefix::CTcpConnectedClient(
 	CTcpServer* pParent)
@@ -254,7 +253,7 @@ void CTcpConnectedClientPrefix::disconnect(
 	if (bIsDisconnected)
 	{
 		/** отключаем клиента */
-		_pParent->clientDisconnected(this, ecDisconnected);
+		clientDisconnected(ecDisconnected);
 		_pParent->removeClient(this);
 	}
 }
@@ -266,10 +265,11 @@ void CTcpConnectedClientPrefix::asyncSendComplitionHandler(
 {
 	assert(bufferSend != nullptr);
 
-	_pParent->clientAsyncSendComplite(
-		this, bufferSend, dwReturnSize, ec);
 	if (ec)
 		disconnect(ec);
+
+	clientAsyncSendComplitionHandler(
+		bufferSend, dwReturnSize, ec);
 
 	endOperation();
 }
@@ -281,12 +281,45 @@ void CTcpConnectedClientPrefix::asyncRecvComplitionHandler(
 {
 	assert(bufferRecv);
 
-	_pParent->clientAsyncRecvComplite(
-		this, bufferRecv, dwReturnSize, ec);
 	if (ec)
 		disconnect(ec);
 
+	clientAsyncRecvComplitionHandler(
+		bufferRecv, dwReturnSize, ec);
+
 	endOperation();
+}
+//==============================================================================
+void CTcpConnectedClientPrefix::clientAsyncRecvComplitionHandler(
+	const PBYTE bufferRecv,
+	const DWORD dwReturnSize,
+	const std::error_code ec) noexcept
+{
+	UNREFERENCED_PARAMETER(bufferRecv);
+	UNREFERENCED_PARAMETER(dwReturnSize);
+	UNREFERENCED_PARAMETER(ec);
+}
+//==============================================================================
+void CTcpConnectedClientPrefix::clientAsyncSendComplitionHandler(
+	const PBYTE bufferSend,
+	const DWORD dwReturnSize,
+	const std::error_code ec) noexcept
+{
+	UNREFERENCED_PARAMETER(bufferSend);
+	UNREFERENCED_PARAMETER(dwReturnSize);
+	UNREFERENCED_PARAMETER(ec);
+}
+//==============================================================================
+void CTcpConnectedClientPrefix::clientConnected(
+	const std::error_code ec) noexcept
+{
+	UNREFERENCED_PARAMETER(ec);
+}
+//==============================================================================
+void CTcpConnectedClientPrefix::clientDisconnected(
+	const std::error_code ec) noexcept
+{
+	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
 CTcpConnectedClientPrefix::~CTcpConnectedClient()

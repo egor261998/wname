@@ -113,6 +113,42 @@ namespace network
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept override;
 	//==========================================================================
+		/**
+		* виртуальный обработчик события завершения асинхронного чтения.
+		* @param bufferRecv - буфер данных.
+		* @param dwReturnSize - количество полученных байт.
+		* @param ec - код завершения.
+		*/
+		WNAME virtual void clientAsyncRecvComplitionHandler(
+			const PBYTE bufferRecv,
+			const DWORD dwReturnSize,
+			const std::error_code ec) noexcept;
+	//==========================================================================
+		/**
+		* виртуальный обработчик события завершения асинхронной записи.
+		* @param bufferSend - буфер данных.
+		* @param dwReturnSize - количество переданных байт.
+		* @param ec - код завершения.
+		*/
+		WNAME virtual void clientAsyncSendComplitionHandler(
+			const PBYTE bufferSend,
+			const DWORD dwReturnSize,
+			const std::error_code ec) noexcept;
+	//==========================================================================
+		/**
+		* виртуальный обработчик события подключения клиента.
+		* @param ec - код ошибки.
+		*/
+		WNAME virtual void clientConnected(
+			const std::error_code ec) noexcept;
+	//==========================================================================
+		/**
+		* виртуальный обработчик события отключения клиента.
+		* @param ec - код ошибки.
+		*/
+		WNAME virtual void clientDisconnected(
+			const std::error_code ec) noexcept;
+	//==========================================================================
 	#pragma endregion
 
 	#pragma region Private_Data

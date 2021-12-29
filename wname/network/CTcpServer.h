@@ -90,50 +90,6 @@ namespace network
 		WNAME virtual std::unique_ptr<CTcpConnectedClient> createClient();
 	//==========================================================================
 		/**
-		* виртуальный обработчик события завершения асинхронного чтения.
-		* @param pTcpClient - клиент.
-		* @param bufferRecv - буфер данных.
-		* @param dwBufferSize - количество прочитанных байт.
-		* @param ec - код завершения.
-		*/
-		WNAME virtual void clientAsyncRecvComplite(
-			CTcpConnectedClient* const pTcpClient,
-			const PBYTE bufferRecv,
-			const DWORD dwReturnSize,
-			const std::error_code ec) noexcept;
-	//==========================================================================
-		/**
-		* виртуальный обработчик события завершения асинхронной записи.
-		* @param pTcpClient - клиент.
-		* @param bufferSend - количество отправленных байт.
-		* @param dwBufferSize - количество записанных байт.
-		* @param ec - код завершения.
-		*/
-		WNAME virtual void clientAsyncSendComplite(
-			CTcpConnectedClient* const pTcpClient,
-			const PBYTE bufferSend,
-			const DWORD dwReturnSize,
-			const std::error_code ec) noexcept;
-	//==========================================================================
-		/**
-		* виртуальный обработчик события подключения нового клиента.
-		* @param pTcpClient - ссылка на текущего клиента.
-		* @param ec - код ошибки завершения.
-		*/
-		WNAME virtual void clientConnected(
-			CTcpConnectedClient* const pTcpClient,
-			const std::error_code ec) noexcept;
-	//==========================================================================
-		/**
-		* виртуальный обработчик события отключения клиента.
-		* @param pTcpClient - клиент.
-		* @param ec - код ошибки завершения.
-		*/
-		WNAME virtual void clientDisconnected(
-			CTcpConnectedClient* const pTcpClient,
-			const std::error_code ec) noexcept;
-	//==========================================================================
-		/**
 		* виртуальный обработчик события отключения сервера.
 		* @param ec - код ошибки.
 		*/
