@@ -102,7 +102,7 @@ namespace logger
 		* @param wStrFunction - функция из которой вызвалось сообщение.
 		* @return - логируемое сообщение.
 		*/
-		virtual std::wstring assembleMessage(
+		WNAME virtual std::wstring assembleMessage(
 			const EMessageType eMessageType,
 			const std::wstring& wStrMessage,
 			const std::error_code& ec,
@@ -112,7 +112,7 @@ namespace logger
 		* логировать сообщение.
 		* @param wStr - логируемое сообщение.
 		*/
-		virtual void logWrite(
+		WNAME virtual void logWrite(
 			const std::wstring& wStr) const = 0;
 	//==========================================================================
 	#pragma endregion

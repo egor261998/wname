@@ -34,7 +34,7 @@ namespace logger {
 		* логировать сообщение.
 		* @param wStr - логируемое сообщение.
 		*/
-		void logWrite(
+		WNAME void logWrite(
 			const std::wstring& wStr) const override;
 	//==========================================================================
 	#pragma endregion
