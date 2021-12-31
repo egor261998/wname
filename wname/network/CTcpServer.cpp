@@ -235,7 +235,7 @@ CTcpClientPrefix::CTcpConnectedClient* CTcpClientPrefix::addClient()
 			createClient().release(),
 			[](CTcpConnectedClient* const pClient) noexcept
 			{
-				if (pClient != nullptr)
+				if (pClient == nullptr)
 					return;
 
 				pClient->disconnect();

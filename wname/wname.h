@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <cassert>
 #include <thread>
+#include <future>
 #include <Shlwapi.h>
 #include <WinSock2.h>
 #include <WS2tcpip.h>
