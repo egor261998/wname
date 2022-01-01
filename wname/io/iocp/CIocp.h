@@ -38,7 +38,7 @@ namespace io::iocp
 		* @param pLogger - объект логирования.
 		*/
 		WNAME CIocp(
-			const DWORD minThreadCount = 0,
+			const DWORD minThreadCount = 1,
 			const DWORD maxThreadCount = std::thread::hardware_concurrency(),
 			const std::shared_ptr<logger::ILogger> pLogger = nullptr) noexcept(false);
 	//==========================================================================
