@@ -68,6 +68,14 @@ namespace network::socket
 		WNAME SOCKET getSocket() const noexcept;
 	//==========================================================================
 		/**
+		* установить значение keep alive для объекта сокета.
+		* @param bValue - значение установки.
+		* @return - результат установки.
+		*/
+		WNAME bool setKeepAlive(
+			const bool bValue) const noexcept;
+	//==========================================================================
+		/**
 		* оператор присвоения сокета.
 		* @param socket - новый сокет.
 		* @return - текущий объект.
