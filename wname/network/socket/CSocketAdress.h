@@ -61,7 +61,7 @@ namespace network::socket
 		* получить размер адреса.
 		* @return - размер.
 		*/
-		WNAME constexpr DWORD size() const noexcept;
+		WNAME DWORD size() const noexcept;
 	//==========================================================================
 		/**
 		* перегрузка операторов.

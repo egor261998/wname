@@ -157,9 +157,9 @@ namespace network
 		/** состояние */
 		socket::ESocketState _eSocketState = socket::ESocketState::disconnected;
 		/** локальный адрес */
-		socket::CSocketAddress _localAddres;
+		socket::CSocketAddress _localAddress;
 		/** удаленный адрес */
-		socket::CSocketAddress _remotelAddres;
+		socket::CSocketAddress _remotelAddress;
 		/** сокет клиента */
 		socket::CSocketHandle _socket;
 

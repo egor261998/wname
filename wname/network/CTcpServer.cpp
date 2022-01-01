@@ -297,8 +297,8 @@ void CTcpClientPrefix::clientAcceptedEventHandler(
 			&pRemote,
 			&remoteLen);
 
-		_this->_localAddres = socket::CSocketAddress(pLocal);
-		_this->_remotelAddres = socket::CSocketAddress(pRemote);
+		_this->_localAddress = socket::CSocketAddress(pLocal);
+		_this->_remotelAddress = socket::CSocketAddress(pRemote);
 
 		ec = pParent->startListen();
 	}

@@ -88,7 +88,7 @@ std::wstring CSocketAddressPrefix::getAddress() const
 	return wstrIp;
 }
 //==============================================================================
-constexpr DWORD CSocketAddressPrefix::size() const noexcept
+DWORD CSocketAddressPrefix::size() const noexcept
 {
 	return sizeof(sockaddr_in);
 }
