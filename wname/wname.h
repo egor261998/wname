@@ -35,6 +35,7 @@
 #include "logger\EMessageType.h"
 #include "logger\Ilogger.h"
 #include "logger\CLoggerToFile.h"
+#include "logger\CLoggerToConsole.h"
 
 /** критическая секция */
 #include "critical section\CCriticalSection.h"

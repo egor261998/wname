@@ -84,6 +84,9 @@
     <ClInclude Include="network\CTcpConnectedClient.h">
       <Filter>network</Filter>
     </ClInclude>
+    <ClInclude Include="logger\CLoggerToConsole.h">
+      <Filter>logger</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="logger">
@@ -186,6 +189,9 @@
     </ClCompile>
     <ClCompile Include="network\CTcpConnectedClient.cpp">
       <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="logger\CLoggerToConsole.cpp">
+      <Filter>logger</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

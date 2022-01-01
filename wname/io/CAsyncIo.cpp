@@ -107,6 +107,7 @@ std::error_code CAsyncIoPrefix::startAsyncRead(
 		/** необходимая синхронизация для корректного отключения
 			во время выполняемых асинхронных операций */
 		cs::CCriticalSectionScoped lock(_csCounter);
+		_nCountIoOperation++;
 
 		if (!ReadFile(getHandle(),
 			pAsyncOperation->_buffer._p,
@@ -118,12 +119,12 @@ std::error_code CAsyncIoPrefix::startAsyncRead(
 
 			if (dwResult != ERROR_IO_PENDING)
 			{
+				_nCountIoOperation--;
 				pAsyncOperation->cancel();
 				return std::error_code(dwResult, std::system_category());
 			}
 		}
 
-		_nCountIoOperation++;
 		counter.release();
 		return std::error_code();
 	}
@@ -214,6 +215,7 @@ std::error_code CAsyncIoPrefix::startAsyncWrite(
 		/** необходимая синхронизация для корректного отключения
 			во время выполняемых асинхронных операций */
 		cs::CCriticalSectionScoped lock(_csCounter);
+		_nCountIoOperation++;
 
 		if (!WriteFile(getHandle(),
 			pAsyncOperation->_buffer._p,
@@ -225,12 +227,12 @@ std::error_code CAsyncIoPrefix::startAsyncWrite(
 
 			if (dwResult != ERROR_IO_PENDING)
 			{
+				_nCountIoOperation--;
 				pAsyncOperation->cancel();
 				return std::error_code(dwResult, std::system_category());
 			}
 		}
 
-		_nCountIoOperation++;
 		counter.release();
 		return std::error_code();
 	}
