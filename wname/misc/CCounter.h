@@ -12,12 +12,7 @@ namespace misc
 		/**
 		* конструктор.
 		*/
-		WNAME CCounter() noexcept { };
-	//==========================================================================
-		/**
-		* инициализация счетчика операций.
-		*/
-		WNAME virtual void initialize();
+		WNAME CCounter() noexcept(false);
 	//==========================================================================
 		/**
 		* инициализирован ли счетчик операций.
@@ -26,15 +21,19 @@ namespace misc
 	//==========================================================================
 		/**
 		* старт новой операции.
+		* @param nCount - количество операций.
 		* @return - успех старта операции.
 		*/
-		WNAME bool startOperation() noexcept;
+		WNAME bool startOperation(
+			const size_t nCount = 1) noexcept;
 	//==========================================================================
 		/**
 		* окончание операции.
+		* @param nCount - количество операций.
 		* @return - возможность завершения.
 		*/
-		WNAME bool endOperation() noexcept;
+		WNAME bool endOperation(
+			const size_t nCount = 1) noexcept;
 	//==========================================================================
 		/**
 		* проверка количества операций.
@@ -42,14 +41,14 @@ namespace misc
 		* @return - TRUE если операций в обработке больше чем указано в параметре.
 		*/
 		WNAME bool checkOperation(
-			const uint64_t nCount = 0) noexcept;
+			const size_t nCount = 0) noexcept;
 	//==========================================================================
 		/**
 		* ожидание операций.
 		* @param nCount - смещение ссылок.
 		*/
 		WNAME void waitOperation(
-			const uint64_t nCount = 0);
+			const size_t nCount = 0);
 	//==========================================================================
 		/**
 		* закончить работу и дождаться всех операций.
@@ -88,24 +87,29 @@ namespace misc
 	//==========================================================================
 	#pragma endregion
 
-	#pragma region Protected_Data
-	protected:
-	//==========================================================================
-		/** состояние */
-		bool _isCounterInitialize = false;
-		bool _isDeleteAfterEndOperation = false;
-
+	#pragma region Private_Data
+	private:
+	//==========================================================================	
 		/** произвольное ожидание операции */
 		std::unordered_map<uint64_t, std::list<handle::CEvent>> _counterWait;
 
 		/** количество выполняемых асинхронных операций */
-		uint64_t _nCounterCount = 0;
+		size_t _nCounterCount = 0;
 
 		/** событие завершения последней операции */
 		handle::CEvent _eventCounterFree;
 
+		/** состояние */
+		bool _isCounterInitialize = true;
+		bool _isDeleteAfterEndOperation = false;
+	//==========================================================================
+	#pragma endregion
+
+	#pragma region Protected_Data
+	protected:
+	//==========================================================================	
 		/** синхронизация счетчика */
-		cs::CCriticalSection _csCounter;
+		cs::CCriticalSection _csCounter;	
 	//==========================================================================
 	#pragma endregion
 	};

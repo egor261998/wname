@@ -17,6 +17,26 @@ namespace network
 		WNAME CTcpConnectedClient(
 			CTcpServer* const pParent);
 	//==========================================================================
+			/**
+			* установить значение keep alive для клиента.
+			* @param bValue - значение установки.
+			* @return - код ошибки.
+			*/
+		WNAME std::error_code setKeepAlive(
+			const bool bValue) noexcept;
+	//==========================================================================
+		/**
+		* получить адрес сокета клиента.
+		* @return - адрес сокета клиента.
+		*/
+		WNAME const socket::CSocketAddress& getClientAddress() noexcept;
+		//==========================================================================
+		/**
+		* получить адрес сокета сервера.
+		* @return - адрес сокета сервера.
+		*/
+		WNAME const socket::CSocketAddress& getServerAddress() noexcept;
+	//==========================================================================
 		/**
 		* старт асинхронной записи в сокет.
 		* @param bufferSend - буфер для записи.
@@ -88,30 +108,8 @@ namespace network
 	//==========================================================================
 	#pragma endregion
 
-	#pragma region Private_Method
-	private:
-	//==========================================================================
-		/**
-		* обработчик события завершения асинхронной записи.
-		* @param bufferSend - буфер данных.
-		* @param dwReturnSize - количество записанных байт.
-		* @param ec - код ошибки завершения.
-		*/
-		WNAME void asyncSendComplitionHandler(
-			const PBYTE bufferSend,
-			const DWORD dwReturnSize,
-			const std::error_code ec) noexcept override;
-	//==========================================================================
-		/**
-		* обработчик события завершения асинхронного чтения.
-		* @param bufferRecv - буфер данных.
-		* @param dwReturnSize - количество прочитанных байт.
-		* @param ec - код ошибки завершения.
-		*/
-		WNAME void asyncRecvComplitionHandler(
-			const PBYTE bufferRecv,
-			const DWORD dwReturnSize,
-			const std::error_code ec) noexcept override;
+	#pragma region Protected_Method
+	protected:
 	//==========================================================================
 		/**
 		* виртуальный обработчик события завершения асинхронного чтения.
@@ -147,12 +145,57 @@ namespace network
 		* @param ec - код ошибки.
 		*/
 		WNAME virtual void clientDisconnected(
-			const std::error_code ec) noexcept;
+			const std::error_code ec) noexcept;	
+	//==========================================================================
+	#pragma endregion
+
+	#pragma region Private_Method
+	private:
+	//==========================================================================
+		/**
+		* добавить асинхронную операцию в обработку.
+		*/
+		WNAME void addAsyncIoPending() noexcept;
+	//==========================================================================
+		/**
+		* удалить асинхронную операцию из обработки.
+		*/
+		WNAME void delAsyncIoPending() noexcept;
+	//==========================================================================
+		/**
+		* обработчик события завершения асинхронной записи.
+		* @param bufferSend - буфер данных.
+		* @param dwReturnSize - количество записанных байт.
+		* @param ec - код ошибки завершения.
+		*/
+		WNAME void asyncSendComplitionHandler(
+			const PBYTE bufferSend,
+			const DWORD dwReturnSize,
+			const std::error_code ec) noexcept override;
+	//==========================================================================
+		/**
+		* обработчик события завершения асинхронного чтения.
+		* @param bufferRecv - буфер данных.
+		* @param dwReturnSize - количество прочитанных байт.
+		* @param ec - код ошибки завершения.
+		*/
+		WNAME void asyncRecvComplitionHandler(
+			const PBYTE bufferRecv,
+			const DWORD dwReturnSize,
+			const std::error_code ec) noexcept override;
 	//==========================================================================
 	#pragma endregion
 
 	#pragma region Protected_Data
 	protected:
+	//==========================================================================
+		/** указатель на родительный класс */
+		CTcpServer* const _pParent;
+	//==========================================================================
+	#pragma endregion
+
+	#pragma region Private_Data
+	private:
 	//==========================================================================
 		/** состояние */
 		socket::ESocketState _eSocketState = socket::ESocketState::disconnected;
@@ -163,14 +206,11 @@ namespace network
 		/** сокет клиента */
 		socket::CSocketHandle _socket;
 
+		/** количество асинхронных операций в обработке */
+		size_t _nAsyncIoPending = 0;
+
 		/** ошибка */
 		std::error_code _ec;
-
-		/** контекст клиента */
-		PVOID _pContex = nullptr;
-
-		/** указатель на родительный класс */
-		CTcpServer* const _pParent;
 
 		/** буфер для подключения */
 		BYTE _bufferConnect[(sizeof(sockaddr) + 16) * 2]{ 0 };

@@ -1,6 +1,7 @@
 #include "../stdafx.h"
 
 using CTcpConnectedClientPrefix = wname::network::CTcpServer::CTcpConnectedClient;
+using CSocketAddressPrefix = wname::network::socket::CSocketAddress;
 using ESocketStatePrefix = wname::network::socket::ESocketState;
 
 //==============================================================================
@@ -28,7 +29,7 @@ _pParent(pParent)
 			throw std::runtime_error(strError);
 		}
 
-		initialize(_socket);
+		bindHandle(_socket);
 		counter.release();
 	}
 	catch (const std::exception& ex)
@@ -36,6 +37,29 @@ _pParent(pParent)
 		_pIocp->log(logger::EMessageType::critical, ex);
 		throw;
 	}
+}
+//==============================================================================
+std::error_code CTcpConnectedClientPrefix::setKeepAlive(
+	const bool bValue) noexcept
+{
+	misc::CCounterScoped counter(*this);
+
+	if (!counter.isStartOperation())
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
+
+	cs::CCriticalSectionScoped lock(_csCounter);
+
+	return _socket.setKeepAlive(bValue);
+}
+//==============================================================================
+const CSocketAddressPrefix& CTcpConnectedClientPrefix::getClientAddress() noexcept
+{
+	return _localAddress;
+}
+//==============================================================================
+const CSocketAddressPrefix& CTcpConnectedClientPrefix::getServerAddress() noexcept
+{
+	return _remotelAddress;
 }
 //==============================================================================
 std::error_code CTcpConnectedClientPrefix::startAsyncSend(
@@ -46,7 +70,7 @@ std::error_code CTcpConnectedClientPrefix::startAsyncSend(
 	misc::CCounterScoped counter(*this);
 
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
@@ -55,10 +79,12 @@ std::error_code CTcpConnectedClientPrefix::startAsyncSend(
 			throw std::invalid_argument("bufferSend == nullptr || dwBufferSize == 0");
 		}
 
+		addAsyncIoPending();
 		const auto ec = __super::startAsyncSend(
 			bufferSend, dwBufferSize, dwFlags);
 		if (ec)
 		{
+			delAsyncIoPending();
 			disconnect(ec);
 			return ec;
 		}
@@ -83,7 +109,7 @@ std::error_code CTcpConnectedClientPrefix::startSend(
 	misc::CCounterScoped counter(*this);
 
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
@@ -118,7 +144,7 @@ std::error_code CTcpConnectedClientPrefix::startAsyncRecv(
 	misc::CCounterScoped counter(*this);
 
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
@@ -127,10 +153,12 @@ std::error_code CTcpConnectedClientPrefix::startAsyncRecv(
 			throw std::invalid_argument("bufferSend == nullptr || dwBufferSize == 0");
 		}
 
+		addAsyncIoPending();
 		const auto ec = __super::startAsyncRecv(
 			bufferRecv, dwBufferSize, dwFlags);
 		if (ec)
 		{
+			delAsyncIoPending();
 			disconnect(ec);
 			return ec;
 		}
@@ -155,7 +183,7 @@ std::error_code CTcpConnectedClientPrefix::startRecv(
 	misc::CCounterScoped counter(*this);
 
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
@@ -202,7 +230,7 @@ void CTcpConnectedClientPrefix::disconnect(
 		case ESocketStatePrefix::disconnecting:
 		{
 			/** еще не все операции отработали */
-			if (_nCountIoOperation > 0)
+			if (_nAsyncIoPending > 0)
 				break;
 
 			_eSocketState = ESocketStatePrefix::disconnected;
@@ -265,11 +293,11 @@ void CTcpConnectedClientPrefix::asyncSendComplitionHandler(
 {
 	assert(bufferSend != nullptr);
 
-	if (ec)
-		disconnect(ec);
-
+	delAsyncIoPending();
 	clientAsyncSendComplitionHandler(
 		bufferSend, dwReturnSize, ec);
+	if (ec)
+		disconnect(ec);
 
 	endOperation();
 }
@@ -281,13 +309,28 @@ void CTcpConnectedClientPrefix::asyncRecvComplitionHandler(
 {
 	assert(bufferRecv);
 
+	delAsyncIoPending();
+	clientAsyncRecvComplitionHandler(
+		bufferRecv, dwReturnSize, ec);
 	if (ec)
 		disconnect(ec);
 
-	clientAsyncRecvComplitionHandler(
-		bufferRecv, dwReturnSize, ec);
-
 	endOperation();
+}
+//==============================================================================
+void CTcpConnectedClientPrefix::addAsyncIoPending() noexcept
+{
+	cs::CCriticalSectionScoped lock(_csCounter);
+
+	_nAsyncIoPending++;
+}
+//==============================================================================
+void CTcpConnectedClientPrefix::delAsyncIoPending() noexcept
+{
+	cs::CCriticalSectionScoped lock(_csCounter);
+
+	assert(_nAsyncIoPending > 0);
+	_nAsyncIoPending--;
 }
 //==============================================================================
 void CTcpConnectedClientPrefix::clientAsyncRecvComplitionHandler(

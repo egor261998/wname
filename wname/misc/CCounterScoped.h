@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace misc
 {
 	/** счетчик операций RAII */
-	class CCounterScoped
+	class CCounterScoped final
 	{
 	#pragma region Public_Method
 	public:
@@ -12,11 +12,11 @@ namespace misc
 		/**
 		* конструктор по умолчанию.
 		* @param counter - счетчик операций.
-		* @param dwCount - количество повешанных ссылок.
+		* @param nCount - количество повешанных ссылок.
 		*/
 		WNAME CCounterScoped(
 			CCounter& counter,
-			const DWORD dwCount = 1) noexcept;
+			const size_t nCount = 1) noexcept;
 	//==========================================================================
 		/**
 		* успех старта счетчика.
@@ -25,14 +25,14 @@ namespace misc
 		WNAME bool isStartOperation() const noexcept;
 	//==========================================================================
 		/**
-		* освободить без уменьшение счетчика.
+		* освободить без снятия ссылок.
 		*/
 		WNAME void release() noexcept;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME virtual ~CCounterScoped();
+		WNAME ~CCounterScoped();
 	//==========================================================================
 		CCounterScoped(const CCounterScoped&) = delete;
 		CCounterScoped(CCounterScoped&&) = delete;
@@ -60,7 +60,7 @@ namespace misc
 		CCounter& _counter;
 
 		/** успех старта счетчика */
-		std::atomic_uint _dwIsStartOperation = 0;
+		size_t _nCountStart = 0;
 	//==========================================================================
 	#pragma endregion
 	};

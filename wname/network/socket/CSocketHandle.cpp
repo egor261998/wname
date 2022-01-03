@@ -75,12 +75,21 @@ SOCKET CSocketHandlePrefix::getSocket() const noexcept
 	return (SOCKET)getHandle();
 }
 //==============================================================================
-bool CSocketHandlePrefix::setKeepAlive(
+std::error_code CSocketHandlePrefix::setKeepAlive(
 	const bool bValue) const noexcept
 {
 	const int yes = bValue ? 1 : 0;
 
-	return setsockopt(getSocket(), SOL_SOCKET, SO_KEEPALIVE, (char*)&yes, sizeof(yes)) != SOCKET_ERROR;
+	if (setsockopt(
+		getSocket(),
+		SOL_SOCKET,
+		SO_KEEPALIVE,
+		(char*)&yes, sizeof(yes)) != SOCKET_ERROR)
+	{
+		return std::error_code(WSAGetLastError(), std::system_category());
+	}
+
+	return std::error_code();
 }
 //==============================================================================
 CSocketHandlePrefix::operator SOCKET() const noexcept

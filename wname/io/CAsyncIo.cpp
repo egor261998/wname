@@ -13,27 +13,14 @@ CAsyncIoPrefix::CAsyncIo(
 	}
 }
 //==============================================================================
-void CAsyncIoPrefix::initialize(
+void CAsyncIoPrefix::bindHandle(
 	handle::CHandle hHandle)
 {
 	try
 	{
-		if (!hHandle.isValid())
-		{
-			throw std::invalid_argument("hHandle == INVALID_HANDLE");
-		}
+		_pIocp->bind(hHandle);
 
 		cs::CCriticalSectionScoped lock(_csCounter);
-
-		/** уже инициализированно */
-		if (isInitialize())
-		{
-			throw std::logic_error("Already initialize");
-		}
-
-		_pIocp->bind(hHandle);
-		__super::initialize();
-
 		_hAsyncHandle = hHandle;
 	}
 	catch (const std::exception& ex)
@@ -41,6 +28,13 @@ void CAsyncIoPrefix::initialize(
 		_pIocp->log(logger::EMessageType::critical, ex);
 		throw;
 	}
+}
+//==============================================================================
+bool CAsyncIoPrefix::isBindHandle() noexcept
+{
+	cs::CCriticalSectionScoped lock(_csCounter);
+
+	return _hAsyncHandle.isValid();
 }
 //==============================================================================
 void CAsyncIoPrefix::changeHandle(
@@ -48,22 +42,8 @@ void CAsyncIoPrefix::changeHandle(
 {
 	try
 	{
-		if (!hHandle.isValid())
-		{
-			throw std::invalid_argument("hHandle == INVALID_HANDLE");
-		}
-
-		cs::CCriticalSectionScoped lock(_csCounter);
-
-		/** закрываем все предыдущее */
-		CancelIoEx(_hAsyncHandle, nullptr);
-		_hAsyncHandle.close();
-
-		/** открываем по новой */
-		_hAsyncHandle = hHandle;
-
-		/** подвязываем к механизму ввода/вывода */
-		_pIocp->bind(_hAsyncHandle);
+		closeHandle();
+		bindHandle(hHandle);	
 	}
 	catch (const std::exception& ex)
 	{
@@ -72,16 +52,17 @@ void CAsyncIoPrefix::changeHandle(
 	}
 }
 //==============================================================================
-void CAsyncIoPrefix::release() noexcept
+void CAsyncIoPrefix::closeHandle() noexcept
 {
+
+	cs::CCriticalSectionScoped lock(_csCounter);
+
+	/** закрываем все предыдущее */
+	if (_hAsyncHandle.isValid())
 	{
-		/** отдельная область видимости для синхронизации */
-		cs::CCriticalSectionScoped lock(_csCounter);
 		CancelIoEx(_hAsyncHandle, nullptr);
 		_hAsyncHandle.close();
 	}
-
-	__super::release();
 }
 //==============================================================================
 std::error_code CAsyncIoPrefix::startAsyncRead(
@@ -92,7 +73,7 @@ std::error_code CAsyncIoPrefix::startAsyncRead(
 	#pragma warning (disable: 26493)
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
@@ -104,11 +85,6 @@ std::error_code CAsyncIoPrefix::startAsyncRead(
 		pAsyncOperation->_buffer._dwSize = dwBufferSize;
 		*(UINT64*)&pAsyncOperation->_overlapped.Offset = offset;
 
-		/** необходимая синхронизация для корректного отключения
-			во время выполняемых асинхронных операций */
-		cs::CCriticalSectionScoped lock(_csCounter);
-		_nCountIoOperation++;
-
 		if (!ReadFile(getHandle(),
 			pAsyncOperation->_buffer._p,
 			pAsyncOperation->_buffer._dwSize,
@@ -119,7 +95,6 @@ std::error_code CAsyncIoPrefix::startAsyncRead(
 
 			if (dwResult != ERROR_IO_PENDING)
 			{
-				_nCountIoOperation--;
 				pAsyncOperation->cancel();
 				return std::error_code(dwResult, std::system_category());
 			}
@@ -144,14 +119,13 @@ std::error_code CAsyncIoPrefix::startRead(
 	#pragma warning (disable: 26493)
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
 		std::error_code ec;
 		handle::CEvent hEvent;
 		DWORD dwReturnSize = 0;
-		hEvent.initialize();
 		auto context = std::tuple(&hEvent, &dwReturnSize, &ec);
 
 		auto pAsyncOperation =
@@ -168,12 +142,12 @@ std::error_code CAsyncIoPrefix::startRead(
 			nullptr,
 			&pAsyncOperation->_overlapped))
 		{
-			const auto dwResultPending = GetLastError();
+			const auto dwResult = GetLastError();
 
-			if (dwResultPending != ERROR_IO_PENDING)
+			if (dwResult != ERROR_IO_PENDING)
 			{
 				pAsyncOperation->cancel();
-				return std::error_code(dwResultPending, std::system_category());
+				return std::error_code(dwResult, std::system_category());
 			}
 		}
 
@@ -200,7 +174,7 @@ std::error_code CAsyncIoPrefix::startAsyncWrite(
 	#pragma warning (disable: 26493)
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
@@ -212,11 +186,6 @@ std::error_code CAsyncIoPrefix::startAsyncWrite(
 		pAsyncOperation->_buffer._dwSize = dwBufferSize;
 		*(UINT64*)&pAsyncOperation->_overlapped.Offset = offset;
 
-		/** необходимая синхронизация для корректного отключения
-			во время выполняемых асинхронных операций */
-		cs::CCriticalSectionScoped lock(_csCounter);
-		_nCountIoOperation++;
-
 		if (!WriteFile(getHandle(),
 			pAsyncOperation->_buffer._p,
 			pAsyncOperation->_buffer._dwSize,
@@ -227,7 +196,6 @@ std::error_code CAsyncIoPrefix::startAsyncWrite(
 
 			if (dwResult != ERROR_IO_PENDING)
 			{
-				_nCountIoOperation--;
 				pAsyncOperation->cancel();
 				return std::error_code(dwResult, std::system_category());
 			}
@@ -252,14 +220,13 @@ std::error_code CAsyncIoPrefix::startWrite(
 	#pragma warning(disable: 26493)
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
 		std::error_code ec;
 		handle::CEvent hEvent;
 		DWORD dwReturnSize = 0;
-		hEvent.initialize();
 		auto context = std::tuple(&hEvent, &dwReturnSize, &ec);
 
 		auto pAsyncOperation =
@@ -276,12 +243,12 @@ std::error_code CAsyncIoPrefix::startWrite(
 			nullptr,
 			&pAsyncOperation->_overlapped))
 		{
-			const auto dwResultPending = GetLastError();
+			const auto dwResult = GetLastError();
 
-			if (dwResultPending != ERROR_IO_PENDING)
+			if (dwResult != ERROR_IO_PENDING)
 			{
 				pAsyncOperation->cancel();
-				return std::error_code(dwResultPending, std::system_category());
+				return std::error_code(dwResult, std::system_category());
 			}
 		}
 
@@ -307,11 +274,6 @@ HANDLE CAsyncIoPrefix::getHandle() noexcept
 	return _hAsyncHandle;
 }
 //==============================================================================
-CAsyncIoPrefix::~CAsyncIo()
-{
-	release();
-}
-//==============================================================================
 void CAsyncIoPrefix::asyncReadComplitionHandler(
 	const PBYTE bufferRead,
 	const DWORD dwReturnSize,
@@ -332,6 +294,12 @@ void CAsyncIoPrefix::asyncWriteComplitionHandler(
 	UNREFERENCED_PARAMETER(ec);
 };
 //==============================================================================
+void CAsyncIoPrefix::release() noexcept
+{
+	closeHandle();
+	__super::release();
+}
+//==============================================================================
 void CAsyncIoPrefix::asyncReadIocpHandler(
 	iocp::CAsyncOperation* const pAsyncOperation) noexcept
 {
@@ -345,7 +313,6 @@ void CAsyncIoPrefix::asyncReadIocpHandler(
 	assert(_this != nullptr);
 
 	_this->_nCountReadByte += pAsyncOperation->_dwReturnSize;
-	_this->_nCountIoOperation--;
 
 	/** обработчик асинхронного чтения */
 	_this->asyncReadComplitionHandler(
@@ -369,7 +336,6 @@ void CAsyncIoPrefix::asyncWriteIocpHandler(
 	assert(_this != nullptr);
 
 	_this->_nCountWriteByte += pAsyncOperation->_dwReturnSize;
-	_this->_nCountIoOperation--;
 
 	/** обработчик асинхронной записи */
 	_this->asyncWriteComplitionHandler(
@@ -411,5 +377,10 @@ void CAsyncIoPrefix::asyncIocpHandler(
 			L"Notify failed",
 			ec);
 	}
+}
+//==============================================================================
+CAsyncIoPrefix::~CAsyncIo()
+{
+	release();
 }
 //==============================================================================

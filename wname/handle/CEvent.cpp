@@ -3,27 +3,8 @@
 using CEventPrefix = wname::handle::CEvent;
 
 //==============================================================================
-CEventPrefix::CEvent(
-	const CEvent& handle) noexcept
-	:CHandle(handle)
+CEventPrefix::CEvent() noexcept(false)
 {
-		
-}
-//==============================================================================
-CEventPrefix::CEvent(
-	CEvent&& handle) noexcept
-	:CHandle(std::move(handle))
-{
-	
-}
-//==============================================================================
-void CEventPrefix::initialize()
-{
-	if (isValid())
-	{
-		throw std::logic_error("CEvent already initialize");
-	}
-
 	/** создаем событие */
 	const auto hObject = CreateEvent(NULL, FALSE, FALSE, NULL);
 
@@ -42,6 +23,20 @@ void CEventPrefix::initialize()
 		throw std::runtime_error(
 			"Create event with error: " + std::to_string(GetLastError()));
 	}
+}
+//==============================================================================
+CEventPrefix::CEvent(
+	const CEvent& handle) noexcept
+	:CHandle(handle)
+{
+		
+}
+//==============================================================================
+CEventPrefix::CEvent(
+	CEvent&& handle) noexcept
+	:CHandle(std::move(handle))
+{
+	
 }
 //==============================================================================
 std::error_code CEventPrefix::notify() const noexcept

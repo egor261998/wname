@@ -4,11 +4,12 @@ _WNAME_BEGIN
 namespace io::iocp
 {
 	/** реализация механизма Iocp */
-	class CIocp : protected misc::CCounter
+	class CIocp final : protected misc::CCounter
 	{
 	#pragma region Public_Inner
 	public:
 	//==========================================================================
+		/** асинхронная операция */
 		class CAsyncOperation;
 	//==========================================================================
 		/**
@@ -30,6 +31,13 @@ namespace io::iocp
 
 	#pragma region Public_Method
 	public:
+	//==========================================================================
+		/**
+		* инициализация Iocp.
+		* @param pLogger - объект логирования.
+		*/
+		WNAME CIocp(
+			const std::shared_ptr<logger::ILogger> pLogger = nullptr) noexcept(false);
 	//==========================================================================
 		/**
 		* инициализация Iocp.
@@ -104,6 +112,11 @@ namespace io::iocp
 		*/
 		WNAME operator HANDLE() noexcept;
 	//==========================================================================
+		/**
+		* закончить работу.
+		*/
+		void release() noexcept override;
+	//==========================================================================
 		/** 
 		* деструктор механизма IOCP 
 		*/
@@ -123,7 +136,7 @@ namespace io::iocp
 		* обработчик асинхронных операций текущего порта ввода/вывода.
 		* @param pWorkerThread - объект нити обработчика.
 		*/
-		void workerThread(
+		WNAME void workerThread(
 			const std::shared_ptr<CThreadPoolWorker> pWorkerThread) noexcept;
 	//==========================================================================
 	#pragma endregion

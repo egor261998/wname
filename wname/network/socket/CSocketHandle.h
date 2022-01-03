@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace network::socket
 {
 	/** описатель для сокета */
-	class CSocketHandle : public handle::CHandle
+	class CSocketHandle final : public handle::CHandle
 	{
 	#pragma region Public_Method
 	public:
@@ -70,9 +70,9 @@ namespace network::socket
 		/**
 		* установить значение keep alive для объекта сокета.
 		* @param bValue - значение установки.
-		* @return - результат установки.
+		* @return - код ошибки.
 		*/
-		WNAME bool setKeepAlive(
+		WNAME std::error_code setKeepAlive(
 			const bool bValue) const noexcept;
 	//==========================================================================
 		/**

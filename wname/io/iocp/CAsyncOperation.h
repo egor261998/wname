@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace io::iocp
 {
 	/** асинхронная операция механизма ввода/вывода */
-	class CIocp::CAsyncOperation : private misc::CInterlockedItem
+	class CIocp::CAsyncOperation final : protected misc::CInterlockedItem
 	{
 		friend class CIocp;
 		friend class misc::CInterlockedList<CAsyncOperation>;

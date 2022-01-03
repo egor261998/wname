@@ -49,11 +49,12 @@ std::error_code CDirectoryPrefix::createDirectory(
 	const DWORD dwCreationDisposition,
 	DWORD dwFlagsAndAttributes)
 {
+	misc::CCounterScoped counter(*this);
+	if (!counter.isStartOperation())
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
+
 	dwFlagsAndAttributes |= FILE_FLAG_BACKUP_SEMANTICS;
 	dwFlagsAndAttributes |= FILE_FLAG_OVERLAPPED;
-
-	if (isInitialize())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
 
 	cs::CCriticalSectionScoped lock(_csCounter);
 
@@ -101,7 +102,7 @@ std::error_code CDirectoryPrefix::createDirectory(
 			return std::error_code(GetLastError(), std::system_category());
 
 		/** инициализация асинхронных операций */
-		initialize(hHandle);
+		bindHandle(hHandle);
 
 		if (_isNotify; std::error_code ec = startNotify())
 		{
@@ -138,7 +139,7 @@ std::filesystem::path CDirectoryPrefix::getPath()
 //==============================================================================
 bool CDirectoryPrefix::isOpen() noexcept
 {
-	return isInitialize();
+	return isBindHandle();
 }
 //==============================================================================
 std::list<std::filesystem::path>CDirectoryPrefix::getFileList(
@@ -207,7 +208,7 @@ std::error_code CDirectoryPrefix::enumDirectory()
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	cs::CCriticalSectionScoped lock(_csCounter);
 
@@ -424,7 +425,7 @@ std::error_code CDirectoryPrefix::startNotify()
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	cs::CCriticalSectionScoped lock(_csCounter);
 

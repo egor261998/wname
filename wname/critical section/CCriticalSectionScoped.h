@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace cs
 {
 	/** блокировка критической секции пока существует объект */
-	class CCriticalSectionScoped
+	class CCriticalSectionScoped final
 	{
 	#pragma region Public_Method
 	public:
@@ -21,7 +21,7 @@ namespace cs
 		* деструктор.
 		*/
 		_Releases_lock_(_cs)
-		WNAME virtual ~CCriticalSectionScoped();
+		WNAME ~CCriticalSectionScoped();
 	//==========================================================================
 		CCriticalSectionScoped(const CCriticalSectionScoped&) = delete;
 		CCriticalSectionScoped(CCriticalSectionScoped&&) = delete;

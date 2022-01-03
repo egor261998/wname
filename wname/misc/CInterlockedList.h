@@ -8,7 +8,7 @@ namespace misc
 
 	/** потокобезопасный односвязный список */
 	template <class T>
-	class CInterlockedList
+	class CInterlockedList final
 	{
 	#pragma region Public_Method
 	public:
@@ -27,7 +27,7 @@ namespace misc
 		*
 		* возвращаемое значение подвержено мгновенному изменению.
 		*/
-		WNAME uint64_t size() const noexcept
+		WNAME size_t size() const noexcept
 		{
 			return _nCount;
 		}
@@ -123,7 +123,7 @@ namespace misc
 		SLIST_HEADER _listHead;
 
 		/** количество элементов в списке */
-		std::atomic_uint64_t _nCount = 0;
+		std::atomic_size_t _nCount = 0;
 	//==========================================================================
 	#pragma endregion
 	};

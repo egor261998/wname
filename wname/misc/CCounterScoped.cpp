@@ -5,50 +5,26 @@ using CCounterScopedPrefix = wname::misc::CCounterScoped;
 //==============================================================================
 CCounterScopedPrefix::CCounterScoped(
 	CCounter& counter,
-	const DWORD dwCount) noexcept
+	const size_t nCount) noexcept
 :_counter(counter)
 {
-	for (_dwIsStartOperation = 0; _dwIsStartOperation < dwCount; _dwIsStartOperation++)
-	{
-		if(!_counter.startOperation())
-		{
-			break;
-		}
-	}
-
-	if (_dwIsStartOperation != dwCount)
-	{
-		/** отменяем */
-		closeOperation(true);
-	}
+	if (_counter.startOperation(nCount))
+		_nCountStart = nCount;
 }
 //==============================================================================
 bool CCounterScopedPrefix::isStartOperation() const noexcept
 {
-	return _dwIsStartOperation > 0;
+	return _nCountStart > 0;
 }
 //==============================================================================
 void CCounterScopedPrefix::release() noexcept
 {
-	closeOperation(false);
-}
-//==============================================================================
-void CCounterScopedPrefix::closeOperation(
-	const bool bIsEndOpertaion) noexcept
-{
-	if (bIsEndOpertaion)
-	{
-		/** завершаем все операции */
-		for (DWORD i = 0; i < _dwIsStartOperation; i++)
-		{
-			_counter.endOperation();
-		}
-	}
-	_dwIsStartOperation = 0;
+	_nCountStart = 0;
 }
 //==============================================================================
 CCounterScopedPrefix::~CCounterScoped()
 {
-	closeOperation(true);
+	if(_nCountStart > 0)
+		_counter.endOperation(_nCountStart);
 }
 //==============================================================================

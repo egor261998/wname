@@ -4,8 +4,10 @@ _WNAME_BEGIN
 namespace io::iocp
 {
 	/** нить пула нитей для механизма ввода/вывода */
-	class CIocp::CThreadPoolWorker : public misc::CCounter
+	class CIocp::CThreadPoolWorker final : protected misc::CCounter
 	{
+		friend class CThreadPool;
+		friend class CIocp;
 	#pragma region Public_Method
 	public:
 	//==========================================================================
@@ -13,25 +15,25 @@ namespace io::iocp
 		* конструктор нити.
 		* @param pThreadPool - пул нитей.
 		*/
-		CThreadPoolWorker(
+		WNAME CThreadPoolWorker(
 			CThreadPool* const pThreadPool);
 	//==========================================================================
 		/**
 		* запустить новую нить.
 		* @param pThreadPool - пул нитей.
 		*/
-		static void start(
+		WNAME static void start(
 			CThreadPool* const pThreadPool);
 	//==========================================================================
 		/**
-		* закончить работу и дождаться всех операций.
+		* закончить работу.
 		*/
-		void release() noexcept override;
+		WNAME void release() noexcept override;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		~CThreadPoolWorker();
+		WNAME ~CThreadPoolWorker();
 	//==========================================================================
 		CThreadPoolWorker(const CThreadPoolWorker&) = delete;
 		CThreadPoolWorker(CThreadPoolWorker&&) = delete;

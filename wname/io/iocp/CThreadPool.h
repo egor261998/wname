@@ -4,8 +4,9 @@ _WNAME_BEGIN
 namespace io::iocp
 {
 	/** пул нитей для механизма ввода/вывода */
-	class CIocp::CThreadPool : public misc::CCounter
+	class CIocp::CThreadPool final : protected misc::CCounter
 	{
+		friend class CThreadPoolWorker;
 	#pragma region Public_Method
 	public:
 	//==========================================================================
@@ -15,7 +16,7 @@ namespace io::iocp
 		* @param minThreadCount - минимальное кол-во нитей в пуле.
 		* @param maxThreadCount - максимальное кол-во нитей в пуле.
 		*/
-		CThreadPool(
+		WNAME CThreadPool(
 			CIocp* const pIocp,
 			const DWORD minThreadCount,
 			const DWORD maxThreadCount);
@@ -24,7 +25,7 @@ namespace io::iocp
 		* высвободить память из под нитки.
 		* @param pThreadPoolWorker - нить пула.
 		*/
-		void delWorker(
+		WNAME void delWorker(
 			const CThreadPoolWorker* const pThreadPoolWorker) noexcept;
 	//==========================================================================
 		/**
@@ -32,7 +33,7 @@ namespace io::iocp
 		* @param pThreadPoolWorker - нить пула.
 		* @return - успех операции.
 		*/
-		bool canFreeWorker(
+		WNAME bool canFreeWorker(
 			CThreadPoolWorker* const pThreadPoolWorker) noexcept;
 	//==========================================================================
 		/**
@@ -40,23 +41,23 @@ namespace io::iocp
 		* @param bAddAnyway - добавить нить в любом случае.
 		* @return - успех операции.
 		*/
-		bool canAddWorker(
+		WNAME bool canAddWorker(
 			bool bAddAnyway = false);
 	//==========================================================================
 		/**
 		* снизить занятость пула.
 		*/
-		void decrementBusyWorker() noexcept;
+		WNAME void decrementBusyWorker() noexcept;
 	//==========================================================================
 		/**
-		* закончить работу и дождаться всех операций.
+		* закончить работу.
 		*/
-		void release() noexcept override;
+		WNAME void release() noexcept override;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		~CThreadPool();
+		WNAME ~CThreadPool();
 	//==========================================================================
 		CThreadPool(const CThreadPool&) = delete;
 		CThreadPool(CThreadPool&&) = delete;

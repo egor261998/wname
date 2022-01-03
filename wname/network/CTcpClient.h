@@ -27,6 +27,14 @@ namespace network
 		WNAME std::error_code connect() noexcept;
 	//==========================================================================
 		/**
+		* установить значение keep alive для клиента.
+		* @param bValue - значение установки.
+		* @return - код ошибки.
+		*/
+		WNAME std::error_code setKeepAlive(
+			const bool bValue) noexcept;
+	//==========================================================================
+		/**
 		* старт асинхронной записи в сокет.
 		* @param bufferSend - буфер для записи.
 		* @param dwBufferSize - размер буфера для записи.
@@ -79,6 +87,12 @@ namespace network
 			const DWORD dwFlags = 0u) override;
 	//==========================================================================
 		/**
+		* получить адрес сокета.
+		* @return - адрес сокета.
+		*/
+		WNAME const socket::CSocketAddress& getAddress() noexcept;
+	//==========================================================================
+		/**
 		* получить состояние сокета.
 		* @return - состояние сокета.
 		*/
@@ -103,30 +117,8 @@ namespace network
 	//==========================================================================
 	#pragma endregion
 
-	#pragma region Private_Method
-	private:
-	//==========================================================================
-		/**
-		* обработчик события завершения асинхронной записи.
-		* @param bufferSend - буфер данных.
-		* @param dwReturnSize - количество записанных байт.
-		* @param ec - код ошибки завершения.
-		*/
-		WNAME void asyncSendComplitionHandler(
-			const PBYTE bufferSend,
-			const DWORD dwReturnSize,
-			const std::error_code ec) noexcept override;
-	//==========================================================================
-		/**
-		* обработчик события завершения асинхронного чтения.
-		* @param bufferRecv - буфер данных.
-		* @param dwReturnSize - количество прочитанных байт.
-		* @param ec - код ошибки завершения.
-		*/
-		WNAME void asyncRecvComplitionHandler(
-			const PBYTE bufferRecv,
-			const DWORD dwReturnSize,
-			const std::error_code ec) noexcept override;
+	#pragma region Protected_Method
+	protected:
 	//==========================================================================
 		/**
 		* виртуальный обработчик события завершения асинхронного чтения.
@@ -166,8 +158,45 @@ namespace network
 	//==========================================================================
 	#pragma endregion
 
-	#pragma region Protected_Data
-	protected:
+	#pragma region Private_Method
+	private:
+	//==========================================================================
+		/**
+		* добавить асинхронную операцию в обработку.
+		*/
+		WNAME void addAsyncIoPending() noexcept;
+	//==========================================================================
+		/**
+		* удалить асинхронную операцию из обработки.
+		*/
+		WNAME void delAsyncIoPending() noexcept;
+	//==========================================================================
+		/**
+		* обработчик события завершения асинхронной записи.
+		* @param bufferSend - буфер данных.
+		* @param dwReturnSize - количество записанных байт.
+		* @param ec - код ошибки завершения.
+		*/
+		WNAME void asyncSendComplitionHandler(
+			const PBYTE bufferSend,
+			const DWORD dwReturnSize,
+			const std::error_code ec) noexcept override;
+	//==========================================================================
+		/**
+		* обработчик события завершения асинхронного чтения.
+		* @param bufferRecv - буфер данных.
+		* @param dwReturnSize - количество прочитанных байт.
+		* @param ec - код ошибки завершения.
+		*/
+		WNAME void asyncRecvComplitionHandler(
+			const PBYTE bufferRecv,
+			const DWORD dwReturnSize,
+			const std::error_code ec) noexcept override;
+	//==========================================================================
+	#pragma endregion
+
+	#pragma region Private_Data
+	private:
 	//==========================================================================
 		/** состояние */
 		socket::ESocketState _eSocketState = socket::ESocketState::disconnected;
@@ -175,6 +204,9 @@ namespace network
 		socket::CSocketAddress _socketAddress;
 		/** сокет клиента */
 		socket::CSocketHandle _socket;
+
+		/** количество асинхронных операций в обработке */
+		size_t _nAsyncIoPending = 0;
 
 		/** ошибка */
 		std::error_code _ec;

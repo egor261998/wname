@@ -3,20 +3,9 @@
 using CCounterPrefix = wname::misc::CCounter;
 
 //==============================================================================
-void CCounterPrefix::initialize()
+CCounterPrefix::CCounter() noexcept(false)
 {
-	cs::CCriticalSectionScoped lock(_csCounter);
-
-	if (_isCounterInitialize)
-	{
-		throw std::logic_error("CCounter already initialize");
-	}
-
-	/** создаем событие, если его нет */
-	if (!_eventCounterFree.isValid())
-		_eventCounterFree.initialize();
-
-	_isCounterInitialize = true;
+	
 }
 //==============================================================================
 bool CCounterPrefix::isInitialize() noexcept
@@ -26,17 +15,19 @@ bool CCounterPrefix::isInitialize() noexcept
 	return _isCounterInitialize;
 }
 //==============================================================================
-bool CCounterPrefix::startOperation() noexcept
+bool CCounterPrefix::startOperation(
+	const size_t nCount) noexcept
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
 
 	if (_isCounterInitialize)
-		_nCounterCount++;
+		_nCounterCount+= nCount;
 
 	return _isCounterInitialize;
 }
 //==============================================================================
-bool CCounterPrefix::endOperation() noexcept
+bool CCounterPrefix::endOperation(
+	const size_t nCount) noexcept
 {
 	bool bResultFree = false;
 	bool isDelete = false;
@@ -45,8 +36,8 @@ bool CCounterPrefix::endOperation() noexcept
 		cs::CCriticalSectionScoped lock(_csCounter);
 
 		/** проверка на наличие операций */
-		assert(_nCounterCount > 0);
-		_nCounterCount--;
+		assert(_nCounterCount >= nCount);
+		_nCounterCount-= nCount;
 		
 		/** обработка операции */
 		processingOperation(bResultFree, isDelete);
@@ -102,7 +93,7 @@ void CCounterPrefix::processingOperation(
 }
 //==============================================================================
 bool CCounterPrefix::checkOperation(
-	const uint64_t nCount) noexcept
+	const size_t nCount) noexcept
 {
 	bool isLast = false;
 	{
@@ -114,7 +105,7 @@ bool CCounterPrefix::checkOperation(
 }
 //==============================================================================
 void CCounterPrefix::waitOperation(
-	const uint64_t nCount)
+	const size_t nCount)
 {
 	handle::CEvent ev;
 
@@ -125,9 +116,6 @@ void CCounterPrefix::waitOperation(
 		/** ожидание не нужно */
 		if (_nCounterCount <= nCount)
 			return;
-
-		/** создаем событие */
-		ev.initialize();
 
 		std::list<handle::CEvent>* pList = nullptr;
 

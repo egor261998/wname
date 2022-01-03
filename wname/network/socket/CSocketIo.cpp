@@ -21,7 +21,7 @@ std::error_code CSocketIoPrefix::startAsyncRecv(
 	#pragma warning (disable: 26493)
 	misc::CCounterScoped counter(*this, 2);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
@@ -31,11 +31,6 @@ std::error_code CSocketIoPrefix::startAsyncRecv(
 
 		pAsyncOperation->_buffer._p = bufferRecv;
 		pAsyncOperation->_buffer._dwSize = dwBufferSize;
-
-		/** необходимая синхронизация для корректного отключения
-		во время выполняемых асинхронных операций */
-		cs::CCriticalSectionScoped lock(_csCounter);
-		_nCountIoOperation++;
 		
 		if (WSARecv((SOCKET)getHandle(),
 			&pAsyncOperation->_wsaBuffer,
@@ -49,7 +44,6 @@ std::error_code CSocketIoPrefix::startAsyncRecv(
 
 			if (dwResult != ERROR_IO_PENDING)
 			{
-				_nCountIoOperation--;
 				pAsyncOperation->cancel();
 				return std::error_code(dwResult, std::system_category());
 			}
@@ -74,14 +68,13 @@ std::error_code CSocketIoPrefix::startRecv(
 	#pragma warning (disable: 26493)
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
 		std::error_code ec;
 		handle::CEvent hEvent;
 		DWORD dwReturnSize = 0;
-		hEvent.initialize();
 		auto context = std::tuple(&hEvent, &dwReturnSize, &ec);
 
 		auto pAsyncOperation =
@@ -99,12 +92,12 @@ std::error_code CSocketIoPrefix::startRecv(
 			&pAsyncOperation->_overlapped,
 			nullptr) == SOCKET_ERROR)
 		{
-			const auto dwResultPending = WSAGetLastError();
+			const auto dwResult = WSAGetLastError();
 
-			if (dwResultPending != ERROR_IO_PENDING)
+			if (dwResult != ERROR_IO_PENDING)
 			{
 				pAsyncOperation->cancel();
-				return std::error_code(dwResultPending, std::system_category());
+				return std::error_code(dwResult, std::system_category());
 			}
 		}
 
@@ -133,7 +126,7 @@ std::error_code CSocketIoPrefix::startAsyncSend(
 	#pragma warning (disable: 26493)
 	misc::CCounterScoped counter(*this, 2);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
@@ -143,11 +136,6 @@ std::error_code CSocketIoPrefix::startAsyncSend(
 
 		pAsyncOperation->_buffer._p = bufferSend;
 		pAsyncOperation->_buffer._dwSize = dwBufferSize;
-
-		/** необходимая синхронизация для корректного отключения
-		во время выполняемых асинхронных операций */
-		cs::CCriticalSectionScoped lock(_csCounter);
-		_nCountIoOperation++;
 
 		if (WSASend((SOCKET)getHandle(),
 			&pAsyncOperation->_wsaBuffer,
@@ -161,7 +149,6 @@ std::error_code CSocketIoPrefix::startAsyncSend(
 
 			if (dwResult != ERROR_IO_PENDING)
 			{
-				_nCountIoOperation--;
 				pAsyncOperation->cancel();
 				return std::error_code(dwResult, std::system_category());
 			}
@@ -186,14 +173,13 @@ std::error_code CSocketIoPrefix::startSend(
 	#pragma warning(disable: 26493)
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
 		std::error_code ec;
 		handle::CEvent hEvent;
 		DWORD dwReturnSize = 0;
-		hEvent.initialize();
 		auto context = std::tuple(&hEvent, &dwReturnSize, &ec);
 
 		auto pAsyncOperation =
@@ -211,12 +197,12 @@ std::error_code CSocketIoPrefix::startSend(
 			&pAsyncOperation->_overlapped,
 			nullptr) == SOCKET_ERROR)
 		{
-			const auto dwResultPending = WSAGetLastError();
+			const auto dwResult = WSAGetLastError();
 
-			if (dwResultPending != ERROR_IO_PENDING)
+			if (dwResult != ERROR_IO_PENDING)
 			{
 				pAsyncOperation->cancel();
-				return std::error_code(dwResultPending, std::system_category());
+				return std::error_code(dwResult, std::system_category());
 			}
 		}
 
@@ -265,7 +251,7 @@ void CSocketIoPrefix::asyncWriteComplitionHandler(
 		std::error_code(ERROR_OPERATION_ABORTED, std::system_category()) : ec;
 
 	asyncSendComplitionHandler(bufferWrite, dwReturnSize, ecComplition);
-
+	
 	endOperation();
 }
 //==============================================================================

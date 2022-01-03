@@ -51,7 +51,7 @@ CTcpClientPrefix::CTcpServer(
 			throw std::runtime_error(strError);
 		}
 	
-		initialize(_socket);
+		bindHandle(_socket);
 	}
 	catch (const std::exception& ex)
 	{
@@ -299,8 +299,9 @@ void CTcpClientPrefix::clientAcceptedEventHandler(
 
 		_this->_localAddress = socket::CSocketAddress(pLocal);
 		_this->_remotelAddress = socket::CSocketAddress(pRemote);
-
-		ec = pParent->startListen();
+	
+		/** новый клиент в очередь */
+		ec = pParent->startListen();		
 	}
 	catch (const std::exception& ex)
 	{

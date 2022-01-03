@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace network::socket
 {
 	/** адрес сокета */
-	class CSocketAddress
+	class CSocketAddress final
 	{
 	#pragma region Public_Method
 	public:

@@ -85,30 +85,8 @@ namespace network::socket
 	//==========================================================================
 	#pragma endregion
 
-	#pragma region Private_Method
-	private:
-	//==========================================================================
-		/**
-		* виртуальный обработчик события завершения асинхронного чтения.
-		* @param bufferRead - буфер данных.
-		* @param dwReturnSize - количество прочитанных байт.
-		* @param ec - код ошибки завершения.
-		*/
-		WNAME void asyncReadComplitionHandler(
-			const PBYTE bufferRead,
-			const DWORD dwReturnSize,
-			const std::error_code ec) noexcept override;
-	//==========================================================================
-		/**
-		* виртуальный обработчик события завершения асинхронной записи.
-		* @param bufferWrite - буфер данных.
-		* @param dwReturnSize - количество записанных байт.
-		* @param ec - код ошибки завершения.
-		*/
-		WNAME void asyncWriteComplitionHandler(
-			const PBYTE bufferWrite,
-			const DWORD dwReturnSize,
-			const std::error_code ec) noexcept override;
+	#pragma region Protected_Method
+	protected:
 	//==========================================================================
 		/**
 		* виртуальный обработчик события завершения асинхронного чтения.
@@ -131,6 +109,33 @@ namespace network::socket
 			const PBYTE bufferSend,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept;
+	//==========================================================================
+	#pragma endregion
+
+	#pragma region Private_Method
+	private:
+	//==========================================================================
+		/**
+		* обработчик события завершения асинхронного чтения.
+		* @param bufferRead - буфер данных.
+		* @param dwReturnSize - количество прочитанных байт.
+		* @param ec - код ошибки завершения.
+		*/
+		WNAME void asyncReadComplitionHandler(
+			const PBYTE bufferRead,
+			const DWORD dwReturnSize,
+			const std::error_code ec) noexcept override;
+	//==========================================================================
+		/**
+		* обработчик события завершения асинхронной записи.
+		* @param bufferWrite - буфер данных.
+		* @param dwReturnSize - количество записанных байт.
+		* @param ec - код ошибки завершения.
+		*/
+		WNAME void asyncWriteComplitionHandler(
+			const PBYTE bufferWrite,
+			const DWORD dwReturnSize,
+			const std::error_code ec) noexcept override;
 	//==========================================================================
 	#pragma endregion
 	};

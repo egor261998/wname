@@ -19,9 +19,6 @@ CThreadPoolWorkerPrefix::CThreadPoolWorker(
 		{
 			throw std::logic_error("Thread pool is not start");
 		}
-
-		/** инициализируем счетчик */
-		initialize();
 	}
 	catch (const std::exception& ex)
 	{

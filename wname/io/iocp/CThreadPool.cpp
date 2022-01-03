@@ -25,9 +25,6 @@ CThreadPoolPrefix::CThreadPool(
 		_nMinThreadCount = minThreadCount;
 		_nMaxThreadCount = maxThreadCount;
 
-		/** инициализируем счетчик */
-		initialize();
-
 		try
 		{
 			/** добавляем минимальное количество нитей */

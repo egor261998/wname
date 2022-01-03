@@ -5,7 +5,7 @@ namespace misc
 {
 	/** TLS */
 	template <class T>
-	class CThreadTls
+	class CThreadTls final
 	{
 	#pragma region Public_Method
 	//==========================================================================
@@ -57,7 +57,7 @@ namespace misc
 		* получить значение.
 		* @return - значение.
 		*/
-		WNAME T* getValue() noexcept
+		WNAME T* getValue() const noexcept
 		{
 			return static_cast<T*>(TlsGetValue(_dwTlsIndex));
 		}

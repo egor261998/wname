@@ -25,12 +25,11 @@ std::error_code CFilePrefix::createFile(
 	const DWORD dwCreationDisposition,
 	DWORD dwFlagsAndAttributes)
 {
-	cs::CCriticalSectionScoped lock(_csCounter);
+	misc::CCounterScoped counter(*this);
+	if (!counter.isStartOperation())
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	dwFlagsAndAttributes |= FILE_FLAG_OVERLAPPED;
-
-	if (isInitialize())
-		return std::error_code(ERROR_ALREADY_EXISTS, std::system_category());
 
 	try
 	{
@@ -73,7 +72,7 @@ std::error_code CFilePrefix::createFile(
 			return std::error_code(GetLastError(), std::system_category());
 
 		/** инициализация асинхронных операций */
-		initialize(hHandle);
+		changeHandle(hHandle);
 
 		return std::error_code();
 	}
@@ -84,6 +83,11 @@ std::error_code CFilePrefix::createFile(
 	}
 }
 //==============================================================================
+bool CFilePrefix::isOpen() noexcept
+{
+	return isBindHandle();
+}
+//==============================================================================
 std::error_code CFilePrefix::startAsyncReadFile(
 	const PBYTE bufferRead,
 	const DWORD dwBufferSize,
@@ -91,7 +95,7 @@ std::error_code CFilePrefix::startAsyncReadFile(
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
@@ -120,7 +124,7 @@ std::error_code CFilePrefix::startReadFile(
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
@@ -144,7 +148,7 @@ std::error_code CFilePrefix::startAsyncWriteFile(
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 		
 	try
 	{
@@ -173,7 +177,7 @@ std::error_code CFilePrefix::startWriteFile(
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
@@ -192,17 +196,16 @@ std::error_code CFilePrefix::startWriteFile(
 //==============================================================================
 void CFilePrefix::close() noexcept
 {
-	release();
-}
-//==============================================================================
-bool CFilePrefix::isOpen() noexcept
-{
-	return isInitialize();
+	closeHandle();
 }
 //==============================================================================
 std::error_code CFilePrefix::getFileSize(
 	UINT64& uSize)
 {
+	misc::CCounterScoped counter(*this);
+	if (!counter.isStartOperation())
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
+
 	std::error_code ec;
 	uSize = std::filesystem::file_size(getPath(), ec);
 
@@ -211,11 +214,19 @@ std::error_code CFilePrefix::getFileSize(
 //==============================================================================
 std::error_code CFilePrefix::deleteFile()
 {
+	misc::CCounterScoped counter(*this);
+	if (!counter.isStartOperation())
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
+
 	return deleteFile(getPath());
 }
 //==============================================================================
 std::error_code CFilePrefix::clearFile() noexcept
 {
+	misc::CCounterScoped counter(*this);
+	if (!counter.isStartOperation())
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
+
 	DWORD dwResult = ERROR_SUCCESS;
 	const auto hHandle = getHandle();
 
@@ -269,6 +280,12 @@ void CFilePrefix::asyncWriteComplitionHandler(
 	endOperation();
 };
 //==============================================================================
+void CFilePrefix::release() noexcept
+{
+	close();
+	__super::release();
+}
+//==============================================================================
 void CFilePrefix::asyncReadFileComplitionHandler(
 	const PBYTE bufferRead,
 	const DWORD dwReturnSize,
@@ -291,6 +308,6 @@ void CFilePrefix::asyncWriteFileComplitionHandler(
 //==============================================================================
 CFilePrefix::~CFile()
 {
-	close();
+	release();
 }
 //==============================================================================

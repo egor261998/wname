@@ -21,6 +21,12 @@ namespace filesystem
 			const std::shared_ptr<io::iocp::CIocp>& pIocp);
 	//==========================================================================
 		/**
+		* открыт ли файл.
+		* @return - успех операции.
+		*/
+		WNAME bool isOpen() noexcept;
+	//==========================================================================
+		/**
 		* создать или открыть файл.
 		* @param dwDesiredAccess - запрошенный доступ к файлу.
 		* ( GENERIC_READ | GENERIC_WRITE).
@@ -96,12 +102,6 @@ namespace filesystem
 		WNAME void close() noexcept;
 	//==========================================================================
 		/**
-		* открыт ли файл.
-		* @return - успех операции.
-		*/
-		WNAME bool isOpen() noexcept;
-	//==========================================================================
-		/**
 		* получить размер файла.
 		* @param uSize - размер файла.
 		* @return - код ошибки.
@@ -136,6 +136,11 @@ namespace filesystem
 			std::filesystem::path filePath) noexcept;
 	//==========================================================================
 		/**
+		* закончить работу.
+		*/
+		WNAME void release() noexcept override;
+	//==========================================================================
+		/**
 		* деструктор.
 		*/
 		WNAME ~CFile();
@@ -144,6 +149,33 @@ namespace filesystem
 		CFile(CFile&&) = delete;
 		CFile& operator=(const CFile&) = delete;
 		CFile& operator=(CFile&&) = delete;
+	//==========================================================================
+	#pragma endregion
+
+	#pragma region Protected_Method
+	protected:
+	//==========================================================================
+		/**
+		* виртуальный обработчик события завершения асинхронного чтения.
+		* @param bufferRead - буфер данных.
+		* @param dwReturnSize - количество прочитанных байт.
+		* @param ec - код ошибки завершения.
+		*/
+		WNAME virtual void asyncReadFileComplitionHandler(
+			const PBYTE bufferRead,
+			const DWORD dwReturnSize,
+			const std::error_code ec) noexcept;
+	//==========================================================================
+		/**
+		* виртуальный обработчик события завершения асинхронной записи.
+		* @param bufferWrite - буфер данных.
+		* @param dwReturnSize - количество записанных байт.
+		* @param ec - код ошибки завершения.
+		*/
+		WNAME virtual void asyncWriteFileComplitionHandler(
+			const PBYTE bufferWrite,
+			const DWORD dwReturnSize,
+			const std::error_code ec) noexcept;
 	//==========================================================================
 	#pragma endregion
 
@@ -171,28 +203,6 @@ namespace filesystem
 			const PBYTE bufferWrite,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept override;
-	//==========================================================================
-		/**
-		* виртуальный обработчик события завершения асинхронного чтения.
-		* @param bufferRead - буфер данных.
-		* @param dwReturnSize - количество прочитанных байт.
-		* @param ec - код ошибки завершения.
-		*/
-		WNAME virtual void asyncReadFileComplitionHandler(
-			const PBYTE bufferRead,
-			const DWORD dwReturnSize,
-			const std::error_code ec) noexcept;
-	//==========================================================================
-		/**
-		* виртуальный обработчик события завершения асинхронной записи.
-		* @param bufferWrite - буфер данных.
-		* @param dwReturnSize - количество записанных байт.
-		* @param ec - код ошибки завершения.
-		*/
-		WNAME virtual void asyncWriteFileComplitionHandler(
-			const PBYTE bufferWrite,
-			const DWORD dwReturnSize,
-			const std::error_code ec) noexcept;
 	//==========================================================================
 	#pragma endregion
 

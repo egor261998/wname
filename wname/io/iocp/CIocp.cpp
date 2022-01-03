@@ -5,6 +5,13 @@ using CAsyncOperationPrefix = wname::io::iocp::CIocp::CAsyncOperation;
 
 //==============================================================================
 CIocpPrefix::CIocp(
+	const std::shared_ptr<logger::ILogger> pLogger) noexcept(false)
+	:CIocp(1, std::thread::hardware_concurrency(), pLogger)
+{
+	
+}
+//==============================================================================
+CIocpPrefix::CIocp(
 	const DWORD minThreadCount,
 	const DWORD maxThreadCount,
 	const std::shared_ptr<logger::ILogger> pLogger) noexcept(false)
@@ -13,14 +20,11 @@ CIocpPrefix::CIocp(
 
 	try
 	{
-		/** инициализируем счетчик */
-		initialize();
-
 		/** инициализируем порт завершения */
 		_hIocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
 		if (!_hIocp.isValid())
 		{
-			throw std::runtime_error("CreateIoCompletionPort failed: " +
+			throw std::runtime_error("CreateIoCompletionPort failed with error: " +
 				std::to_string(GetLastError()));
 		}
 
@@ -121,7 +125,7 @@ CAsyncOperationPrefix* CIocpPrefix::getAsyncOperation(
 				/** не смогли так не смогли */
 				_updateOperation = false;
 				log(logger::EMessageType::warning,
-					L"PostQueuedCompletionStatus failed",
+					L"PostQueuedCompletionStatus failed with error: ",
 					std::error_code(GetLastError(), std::system_category()));
 			}
 		}
@@ -180,7 +184,7 @@ void CIocpPrefix::transit(
 			/** проблема транзита */
 			pAsyncOperation->cancel();
 
-			throw std::runtime_error("PostQueuedCompletionStatus failed: " +
+			throw std::runtime_error("PostQueuedCompletionStatus failed with error: " +
 				std::to_string(GetLastError()));
 		}
 	}
@@ -216,10 +220,10 @@ CIocpPrefix::operator HANDLE() noexcept
 	return _hIocp;
 }
 //==============================================================================
-CIocpPrefix::~CIocp()
+void CIocpPrefix::release() noexcept
 {
 	/** завершаем работу */
-	release();
+	__super::release();
 
 	/** ждем завершения всех потоков */
 	_pThreadPool->release();
@@ -229,6 +233,12 @@ CIocpPrefix::~CIocp()
 
 	/** закрываем порт ввода/вывода */
 	_hIocp.close();
+}
+//==============================================================================
+CIocpPrefix::~CIocp()
+{
+	/** завершаем работу */
+	release();
 }
 //==============================================================================
 void CIocpPrefix::workerThread(
