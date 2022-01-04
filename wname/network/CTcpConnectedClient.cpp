@@ -224,9 +224,6 @@ std::error_code CTcpConnectedClientPrefix::startRecv(
 void CTcpConnectedClientPrefix::disconnect(
 	const std::error_code ec) noexcept
 {
-	/** счетчик операций для корректного завершения контекста */
-	misc::CCounterScoped counter(*this);
-
 	bool bIsRepeatDisconnect = false;
 	bool bIsDisconnected = false;
 	std::error_code ecDisconnected;

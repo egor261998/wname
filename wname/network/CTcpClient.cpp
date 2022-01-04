@@ -242,9 +242,6 @@ std::error_code CTcpClientPrefix::startRecv(
 void CTcpClientPrefix::disconnect(
 	const std::error_code ec) noexcept
 {
-	/** счетчик операций для корректного завершения контекста */
-	misc::CCounterScoped counter(*this);
-
 	bool bIsRepeatDisconnect = false;
 	bool bIsDisconnected = false;
 	std::error_code ecDisconnected;
@@ -263,7 +260,7 @@ void CTcpClientPrefix::disconnect(
 				break;
 
 			_eSocketState = ESocketStatePrefix::disconnected;
-			if (!counter.isStartOperation())
+			if (!isInitialize())
 			{
 				/** просто закрываемся */
 				ecDisconnected = std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
