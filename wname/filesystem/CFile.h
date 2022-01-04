@@ -7,7 +7,6 @@ namespace filesystem
 	class CFile : protected io::CAsyncIo
 	{
 		friend class CDirectory;
-
 	#pragma region Public_Method
 	public:
 	//==========================================================================

@@ -90,7 +90,7 @@ namespace network
 		* получить адрес сокета.
 		* @return - адрес сокета.
 		*/
-		WNAME const socket::CSocketAddress& getAddress() noexcept;
+		WNAME socket::CSocketAddress getAddress() noexcept;
 	//==========================================================================
 		/**
 		* получить состояние сокета.
@@ -104,6 +104,11 @@ namespace network
 		*/
 		WNAME void disconnect(
 			const std::error_code ec = std::error_code()) noexcept;
+	//==========================================================================
+		/**
+		* закончить работу.
+		*/
+		WNAME void release() noexcept override;
 	//==========================================================================
 		/**
 		* деструктор.

@@ -344,8 +344,10 @@ void CTcpClientPrefix::disconnect(
 	}
 }
 //==============================================================================
-const CSocketAddressPrefix& CTcpClientPrefix::getAddress() noexcept
+CSocketAddressPrefix CTcpClientPrefix::getAddress() noexcept
 {
+	cs::CCriticalSectionScoped lock(_csCounter);
+
 	return _socketAddress;
 }
 //==============================================================================
@@ -433,12 +435,18 @@ void CTcpClientPrefix::clientDisconnected(
 	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
-CTcpClientPrefix::~CTcpClient()
+void CTcpClientPrefix::release() noexcept
 {
 	/** отключаем */
 	disconnect();
 
 	/** ждем завершения всего */
+	__super::release();
+}
+//==============================================================================
+CTcpClientPrefix::~CTcpClient()
+{
+	/** завершение всего */
 	release();
 }
 //==============================================================================

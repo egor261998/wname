@@ -29,13 +29,19 @@ namespace network
 		* получить адрес сокета клиента.
 		* @return - адрес сокета клиента.
 		*/
-		WNAME const socket::CSocketAddress& getClientAddress() noexcept;
+		WNAME socket::CSocketAddress getClientAddress() noexcept;
 		//==========================================================================
 		/**
 		* получить адрес сокета сервера.
 		* @return - адрес сокета сервера.
 		*/
-		WNAME const socket::CSocketAddress& getServerAddress() noexcept;
+		WNAME socket::CSocketAddress getServerAddress() noexcept;
+	//==========================================================================
+		/**
+		* получить состояние сокета.
+		* @return - состояние сокета.
+		*/
+		WNAME socket::ESocketState getState() noexcept;
 	//==========================================================================
 		/**
 		* старт асинхронной записи в сокет.
@@ -95,6 +101,11 @@ namespace network
 		*/
 		WNAME void disconnect(
 			const std::error_code ec = std::error_code()) noexcept;
+	//==========================================================================
+		/**
+		* закончить работу.
+		*/
+		WNAME void release() noexcept override;
 	//==========================================================================
 		/**
 		* деструктор.

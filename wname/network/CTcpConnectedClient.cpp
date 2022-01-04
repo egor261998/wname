@@ -52,14 +52,25 @@ std::error_code CTcpConnectedClientPrefix::setKeepAlive(
 	return _socket.setKeepAlive(bValue);
 }
 //==============================================================================
-const CSocketAddressPrefix& CTcpConnectedClientPrefix::getClientAddress() noexcept
+CSocketAddressPrefix CTcpConnectedClientPrefix::getClientAddress() noexcept
 {
+	cs::CCriticalSectionScoped lock(_csCounter);
+
 	return _localAddress;
 }
 //==============================================================================
-const CSocketAddressPrefix& CTcpConnectedClientPrefix::getServerAddress() noexcept
+CSocketAddressPrefix CTcpConnectedClientPrefix::getServerAddress() noexcept
 {
+	cs::CCriticalSectionScoped lock(_csCounter);
+
 	return _remotelAddress;
+}
+//==============================================================================
+ESocketStatePrefix CTcpConnectedClientPrefix::getState() noexcept
+{
+	cs::CCriticalSectionScoped lock(_csCounter);
+
+	return _eSocketState;
 }
 //==============================================================================
 std::error_code CTcpConnectedClientPrefix::startAsyncSend(
@@ -365,9 +376,18 @@ void CTcpConnectedClientPrefix::clientDisconnected(
 	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
+void CTcpConnectedClientPrefix::release() noexcept
+{
+	/** отключаем */
+	disconnect();
+
+	/** ждем завершения всего */
+	__super::release();
+}
+//==============================================================================
 CTcpConnectedClientPrefix::~CTcpConnectedClient()
 {
-	/** ждем завершения всего */
+	/** завершение всего */
 	release();
 
 	/** снимаем ссылку с сервера */

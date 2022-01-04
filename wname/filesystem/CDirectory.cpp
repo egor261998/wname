@@ -429,19 +429,17 @@ std::error_code CDirectoryPrefix::startNotify()
 
 	cs::CCriticalSectionScoped lock(_csCounter);
 
-	io::iocp::CAsyncOperation* pAsyncOperation = nullptr;
-
 	try
 	{
-		pAsyncOperation =
-			_pIocp->getAsyncOperation(this, notifyCompilteHandler);
-		assert(pAsyncOperation != nullptr);
-
 		if (_bufferNotify.size() != BUFFER_64K)
 		{
 			_bufferNotify.resize(BUFFER_64K);
 		}
-	
+
+		auto pAsyncOperation =
+			_pIocp->getAsyncOperation(this, notifyCompilteHandler);
+		assert(pAsyncOperation != nullptr);
+
 		pAsyncOperation->_buffer._p = _bufferNotify.data();
 		pAsyncOperation->_buffer._dwSize = static_cast<DWORD>(_bufferNotify.size());
 
@@ -470,9 +468,6 @@ std::error_code CDirectoryPrefix::startNotify()
 	}
 	catch (const std::exception& ex)
 	{
-		if (pAsyncOperation != nullptr)
-			pAsyncOperation->cancel();
-
 		_pIocp->log(logger::EMessageType::warning, ex);
 		throw;
 	}

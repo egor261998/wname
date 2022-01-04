@@ -43,6 +43,11 @@ namespace network
 			const std::error_code ec = std::error_code()) noexcept;
 	//==========================================================================
 		/**
+		* закончить работу.
+		*/
+		WNAME void release() noexcept override;
+	//==========================================================================
+		/**
 		* деструктор TCP сервера.
 		*/
 		WNAME ~CTcpServer();
@@ -51,6 +56,31 @@ namespace network
 		CTcpServer(CTcpServer&&) = delete;
 		CTcpServer& operator=(const CTcpServer&) = delete;
 		CTcpServer& operator=(CTcpServer&&) = delete;
+	//==========================================================================
+	#pragma endregion
+
+	#pragma region Protected_Method
+	protected:
+	//==========================================================================
+		/**
+		* виртуальный обработчик создания клиента.
+		* @return - клиент
+		*/
+		WNAME virtual std::unique_ptr<CTcpConnectedClient> createClient();
+	//==========================================================================
+		/**
+		* виртуальный обработчик события отключения сервера.
+		* @param ec - код ошибки.
+		*/
+		WNAME virtual void serverConnected(
+			const std::error_code ec) noexcept;
+	//==========================================================================
+		/**
+		* виртуальный обработчик события отключения сервера.
+		* @param ec - код ошибки.
+		*/
+		WNAME virtual void serverDisconnected(
+			const std::error_code ec) noexcept;
 	//==========================================================================
 	#pragma endregion
 
@@ -82,26 +112,6 @@ namespace network
 		* @return - код ошибки.
 		*/
 		WNAME std::error_code startListen();
-	//==========================================================================
-		/**
-		* виртуальный обработчик создания клиента.
-		* @return - клиент
-		*/
-		WNAME virtual std::unique_ptr<CTcpConnectedClient> createClient();
-	//==========================================================================
-		/**
-		* виртуальный обработчик события отключения сервера.
-		* @param ec - код ошибки.
-		*/
-		WNAME virtual void serverConnected(
-			const std::error_code ec) noexcept;
-	//==========================================================================
-		/**
-		* виртуальный обработчик события отключения сервера.
-		* @param ec - код ошибки.
-		*/
-		WNAME virtual void serverDisconnected(
-			const std::error_code ec) noexcept;
 	//==========================================================================
 	#pragma endregion
 

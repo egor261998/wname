@@ -1,10 +1,10 @@
 #include "../stdafx.h"
 
-using CTcpClientPrefix = wname::network::CTcpServer;
+using CTcpServerPrefix = wname::network::CTcpServer;
 using ESocketStatePrefix = wname::network::socket::ESocketState;
 
 //==============================================================================
-CTcpClientPrefix::CTcpServer(
+CTcpServerPrefix::CTcpServer(
 	const std::string strIp,
 	const WORD wPort,
 	const std::shared_ptr<io::iocp::CIocp>& pIocp)
@@ -60,12 +60,12 @@ CTcpClientPrefix::CTcpServer(
 	}
 }
 //==============================================================================
-std::error_code CTcpClientPrefix::connectServer()
+std::error_code CTcpServerPrefix::connectServer()
 {
 	misc::CCounterScoped counter(*this);
 
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	std::error_code ec;
 
@@ -102,7 +102,7 @@ std::error_code CTcpClientPrefix::connectServer()
 	return ec;
 }
 //==============================================================================
-void CTcpClientPrefix::disconnectServer(
+void CTcpServerPrefix::disconnectServer(
 	const std::error_code ec) noexcept
 {
 	/** счетчик операций для корректного завершения контекста */
@@ -175,7 +175,7 @@ void CTcpClientPrefix::disconnectServer(
 	}
 }
 //==============================================================================
-void CTcpClientPrefix::removeClient(
+void CTcpServerPrefix::removeClient(
 	CTcpConnectedClient* const pClient) noexcept
 {
 	if (pClient == nullptr)
@@ -214,7 +214,7 @@ void CTcpClientPrefix::removeClient(
 	}
 }
 //==============================================================================
-CTcpClientPrefix::CTcpConnectedClient* CTcpClientPrefix::addClient()
+CTcpServerPrefix::CTcpConnectedClient* CTcpServerPrefix::addClient()
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
@@ -253,7 +253,7 @@ CTcpClientPrefix::CTcpConnectedClient* CTcpClientPrefix::addClient()
 	}
 }
 //==============================================================================
-void CTcpClientPrefix::clientAcceptedEventHandler(
+void CTcpServerPrefix::clientAcceptedEventHandler(
 	io::iocp::CAsyncOperation* pAsyncOperation) noexcept
 {
 	#pragma warning (disable: 26429)
@@ -308,7 +308,7 @@ void CTcpClientPrefix::clientAcceptedEventHandler(
 		/** не получилось */
 		_this->_pIocp->log(logger::EMessageType::warning, ex);
 
-		ec = std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		ec = std::error_code(ERROR_INVALID_FUNCTION, std::system_category());
 		pParent->removeClient(_this);
 		_this->endOperation();
 
@@ -332,12 +332,12 @@ void CTcpClientPrefix::clientAcceptedEventHandler(
 	pParent->endOperation();
 }
 //==============================================================================
-std::error_code CTcpClientPrefix::startListen()
+std::error_code CTcpServerPrefix::startListen()
 {
 	misc::CCounterScoped counter(*this);
 
 	if (!counter.isStartOperation())
-		return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
 	try
 	{
@@ -370,7 +370,7 @@ std::error_code CTcpClientPrefix::startListen()
 				{
 					removeClient(pClient);
 					pAsyncOperation->cancel();
-					return std::error_code(ERROR_INVALID_HANDLE_STATE, std::system_category());
+					return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 				}
 
 				/** пробуем встать на ожидание */
@@ -416,7 +416,7 @@ std::error_code CTcpClientPrefix::startListen()
 	}
 }
 //==============================================================================
-std::unique_ptr<CTcpClientPrefix::CTcpConnectedClient> CTcpClientPrefix::createClient()
+std::unique_ptr<CTcpServerPrefix::CTcpConnectedClient> CTcpServerPrefix::createClient()
 {
 	try
 	{
@@ -430,24 +430,30 @@ std::unique_ptr<CTcpClientPrefix::CTcpConnectedClient> CTcpClientPrefix::createC
 	}
 }
 //==============================================================================
-void CTcpClientPrefix::serverConnected(
+void CTcpServerPrefix::serverConnected(
 	const std::error_code ec) noexcept
 {
 	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
-void CTcpClientPrefix::serverDisconnected(
+void CTcpServerPrefix::serverDisconnected(
 	const std::error_code ec) noexcept
 {
 	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
-CTcpClientPrefix::~CTcpServer()
+void CTcpServerPrefix::release() noexcept
 {
 	/** отключаем */
 	disconnectServer();
 
 	/** ждем завершения всего */
+	__super::release();
+}
+//==============================================================================
+CTcpServerPrefix::~CTcpServer()
+{
+	/** завершение всего */
 	release();
 }
 //==============================================================================
