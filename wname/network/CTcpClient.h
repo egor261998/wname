@@ -67,18 +67,8 @@ namespace network
 	#pragma region Private_Data
 	private:
 	//==========================================================================
-		/** состояние */
-		socket::ESocketState _eSocketState = socket::ESocketState::disconnected;
-		/** адрес сервера */
+		/** адрес сервера подключения */
 		socket::CSocketAddress _socketAddress;
-		/** сокет клиента */
-		socket::CSocketHandle _socket;
-
-		/** количество асинхронных операций в обработке */
-		size_t _nAsyncIoPending = 0;
-
-		/** ошибка */
-		std::error_code _ec;
 	//==========================================================================
 	#pragma endregion
 	};

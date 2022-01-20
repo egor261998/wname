@@ -275,8 +275,6 @@ void ITcpClient::release(
 	const bool bIsWait) noexcept
 {
 	__super::release(false);
-	/** отключаем */
-	disconnect();
 
 	/** ждем завершения всего */
 	if (bIsWait)

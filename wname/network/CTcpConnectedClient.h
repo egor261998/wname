@@ -72,20 +72,9 @@ namespace network
 	#pragma region Private_Data
 	private:
 	//==========================================================================
-		/** состояние */
-		socket::ESocketState _eSocketState = socket::ESocketState::disconnected;
-		/** локальный адрес */
 		socket::CSocketAddress _localAddress;
 		/** удаленный адрес */
 		socket::CSocketAddress _remotelAddress;
-		/** сокет клиента */
-		socket::CSocketHandle _socket;
-
-		/** количество асинхронных операций в обработке */
-		size_t _nAsyncIoPending = 0;
-
-		/** ошибка */
-		std::error_code _ec;
 
 		/** буфер для подключения */
 		BYTE _bufferConnect[(sizeof(sockaddr) + 16) * 2]{ 0 };

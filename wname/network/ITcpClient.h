@@ -204,8 +204,8 @@ namespace network
 	//==========================================================================
 	#pragma endregion
 
-	#pragma region Private_Data
-	private:
+	#pragma region Protected_Data
+	protected:
 	//==========================================================================
 		/** состояние */
 		socket::ESocketState _eSocketState = socket::ESocketState::disconnected;
