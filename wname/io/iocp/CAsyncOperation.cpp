@@ -1,13 +1,13 @@
 #include "../../stdafx.h"
 
-using CAsyncOperationPrefix = wname::io::iocp::CIocp::CAsyncOperation;
+using wname::io::iocp::CIocp;
 
 //==============================================================================
-CAsyncOperationPrefix::CAsyncOperation(
+CIocp::CAsyncOperation::CAsyncOperation(
 	CIocp* const pIocp,
 	const PVOID pCompletionRoutineContext,
-	const FAsyncCompletion fComplitionRoutine)
-:_pIocp(pIocp)
+	const FAsyncCompletion fComplitionRoutine) :
+	_pIocp(pIocp)
 {
 	if (_pIocp == nullptr)
 	{
@@ -18,7 +18,7 @@ CAsyncOperationPrefix::CAsyncOperation(
 	_fComplitionRoutine = fComplitionRoutine;
 }
 //==============================================================================
-void CAsyncOperationPrefix::CAsyncOperation::cancel() noexcept
+void CIocp::CAsyncOperation::cancel() noexcept
 {
 	const auto pIocp = _pIocp;
 	assert(pIocp != nullptr);

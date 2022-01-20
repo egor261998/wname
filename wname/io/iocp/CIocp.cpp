@@ -1,17 +1,16 @@
 #include "../../stdafx.h"
 
-using CIocpPrefix = wname::io::iocp::CIocp;
-using CAsyncOperationPrefix = wname::io::iocp::CIocp::CAsyncOperation;
+using wname::io::iocp::CIocp;
 
 //==============================================================================
-CIocpPrefix::CIocp(
-	const std::shared_ptr<logger::ILogger> pLogger) noexcept(false)
-	:CIocp(1, std::thread::hardware_concurrency(), pLogger)
+CIocp::CIocp(
+	const std::shared_ptr<logger::ILogger> pLogger) noexcept(false)	:
+	CIocp(1, std::thread::hardware_concurrency(), pLogger)
 {
 	
 }
 //==============================================================================
-CIocpPrefix::CIocp(
+CIocp::CIocp(
 	const DWORD minThreadCount,
 	const DWORD maxThreadCount,
 	const std::shared_ptr<logger::ILogger> pLogger) noexcept(false)
@@ -39,7 +38,7 @@ CIocpPrefix::CIocp(
 	}
 }
 //==============================================================================
-void CIocpPrefix::bind(
+void CIocp::bind(
 	const HANDLE hHandle,
 	const ULONG_PTR ulCompletionKey)
 {
@@ -75,7 +74,7 @@ void CIocpPrefix::bind(
 	}
 }
 //==============================================================================
-CAsyncOperationPrefix* CIocpPrefix::getAsyncOperation(
+CIocp::CAsyncOperation* CIocp::getAsyncOperation(
 	const PVOID pCompletionRoutineContext,
 	const FAsyncCompletion fComplitionRoutine)
 {
@@ -150,7 +149,7 @@ CAsyncOperationPrefix* CIocpPrefix::getAsyncOperation(
 	}
 }
 //==============================================================================
-void CIocpPrefix::transit(
+void CIocp::transit(
 	const PVOID pCompletionRoutineContext,
 	const FAsyncCompletion fComplitionRoutine,
 	const ULONG_PTR ulComplitionKey)
@@ -195,7 +194,7 @@ void CIocpPrefix::transit(
 	}
 }
 //==============================================================================
-void CIocpPrefix::log(
+void CIocp::log(
 	const logger::EMessageType eMessageType,
 	const std::exception& ex,
 	const std::error_code ec,
@@ -205,7 +204,7 @@ void CIocpPrefix::log(
 		_pLogger->log(eMessageType, ex, ec, messageFunction);
 }
 //==============================================================================
-void CIocpPrefix::log(
+void CIocp::log(
 	const logger::EMessageType eMessageType,
 	const WCHAR* const message,
 	const std::error_code ec,
@@ -215,33 +214,37 @@ void CIocpPrefix::log(
 		_pLogger->log(eMessageType, message, ec, messageFunction);
 }
 //==============================================================================
-CIocpPrefix::operator HANDLE() noexcept
+CIocp::operator HANDLE() noexcept
 {
 	return _hIocp;
 }
 //==============================================================================
-void CIocpPrefix::release() noexcept
+void CIocp::release(
+	const bool bIsWait) noexcept
 {
 	/** завершаем работу */
-	__super::release();
+	__super::release(false);
 
 	/** ждем завершения всех потоков */
-	_pThreadPool->release();
-
-	/** очищаем список асинхронных операций */
-	_listFreeAsyncOperation.clear();
+	_pThreadPool->release(true);
 
 	/** закрываем порт ввода/вывода */
 	_hIocp.close();
+
+	/** ожидаем*/
+	if (bIsWait)
+	{
+		__super::release(bIsWait);
+	}
 }
 //==============================================================================
-CIocpPrefix::~CIocp()
+CIocp::~CIocp()
 {
 	/** завершаем работу */
-	release();
+	release(true);
 }
 //==============================================================================
-void CIocpPrefix::workerThread(
+void CIocp::workerThread(
 	const std::shared_ptr<CThreadPoolWorker> pWorkerThread) noexcept
 {
 	#pragma warning (disable: 26493 26481)

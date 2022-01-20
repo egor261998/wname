@@ -1,21 +1,21 @@
 #include "../../stdafx.h"
 
-using CSocketAddressPrefix = wname::network::socket::CSocketAddress;
+using wname::network::socket::CSocketAddress;
 
 //==========================================================================
-CSocketAddressPrefix::CSocketAddress(
+CSocketAddress::CSocketAddress(
 	const CSocketAddress& socketAddress) noexcept
 {
 	*this = socketAddress;
 }
 //==========================================================================
-CSocketAddressPrefix::CSocketAddress(
+CSocketAddress::CSocketAddress(
 	CSocketAddress&& socketAddress) noexcept
 {
 	*this = std::move(socketAddress);
 }
 //==============================================================================
-CSocketAddressPrefix::CSocketAddress(
+CSocketAddress::CSocketAddress(
 	const std::string strIp,
 	const WORD wPort)
 {
@@ -60,7 +60,7 @@ CSocketAddressPrefix::CSocketAddress(
 	_bindEndpoint_in.sin_port = htons(wPort);
 }
 //==============================================================================
-CSocketAddressPrefix::CSocketAddress(
+CSocketAddress::CSocketAddress(
 	const sockaddr* const pSockAdr) noexcept
 {
 	if (pSockAdr == nullptr)
@@ -69,7 +69,7 @@ CSocketAddressPrefix::CSocketAddress(
 	memcpy(&_bindEndpoint, pSockAdr, sizeof(pSockAdr));
 }
 //==============================================================================
-CSocketAddressPrefix::CSocketAddress(
+CSocketAddress::CSocketAddress(
 	const sockaddr_in* const pSockAdr_in) noexcept
 {
 	if (pSockAdr_in == nullptr)
@@ -78,7 +78,7 @@ CSocketAddressPrefix::CSocketAddress(
 	memcpy(&_bindEndpoint, pSockAdr_in, sizeof(pSockAdr_in));
 }
 //==============================================================================
-std::wstring CSocketAddressPrefix::getAddress() const
+std::wstring CSocketAddress::getAddress() const
 {
 	const auto wPort = htons(_bindEndpoint_in.sin_port);
 	std::string strIp = inet_ntoa(_bindEndpoint_in.sin_addr);
@@ -88,29 +88,29 @@ std::wstring CSocketAddressPrefix::getAddress() const
 	return wstrIp;
 }
 //==============================================================================
-DWORD CSocketAddressPrefix::size() const noexcept
+DWORD CSocketAddress::size() const noexcept
 {
 	return sizeof(sockaddr_in);
 }
 //==============================================================================
-CSocketAddressPrefix::operator sockaddr_in* () noexcept
+CSocketAddress::operator sockaddr_in* () noexcept
 {
 	return &_bindEndpoint_in;
 }
 //==============================================================================
-CSocketAddressPrefix::operator sockaddr* () noexcept
+CSocketAddress::operator sockaddr* () noexcept
 {
 	return &_bindEndpoint;
 }
 //==============================================================================
-CSocketAddressPrefix& CSocketAddressPrefix::operator=(
+CSocketAddress& CSocketAddress::operator=(
 	const CSocketAddress& socketAddress) noexcept
 {
 	memcpy(&_bindEndpoint, &socketAddress._bindEndpoint, sizeof(_bindEndpoint));
 	return *this;
 }
 //==============================================================================
-CSocketAddressPrefix& CSocketAddressPrefix::operator=(
+CSocketAddress& CSocketAddress::operator=(
 	CSocketAddress&& socketAddress) noexcept
 {
 	memcpy(&_bindEndpoint, &socketAddress._bindEndpoint, sizeof(_bindEndpoint));
@@ -118,7 +118,7 @@ CSocketAddressPrefix& CSocketAddressPrefix::operator=(
 	return *this;
 }
 //==============================================================================
-CSocketAddressPrefix::~CSocketAddress()
+CSocketAddress::~CSocketAddress()
 {
 	memset(&_bindEndpoint, 0, sizeof(_bindEndpoint));
 }

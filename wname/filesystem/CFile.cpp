@@ -1,12 +1,12 @@
 #include "../stdafx.h"
 
-using CFilePrefix = wname::filesystem::CFile;
+using wname::filesystem::CFile;
 
 //==============================================================================
-CFilePrefix::CFile(
+CFile::CFile(
 	const std::filesystem::path filePath,
-	const std::shared_ptr<io::iocp::CIocp>& pIocp) 
-:CAsyncIo(pIocp)
+	const std::shared_ptr<io::iocp::CIocp>& pIocp) :
+	CAsyncIo(pIocp)
 {
 	try
 	{
@@ -19,17 +19,15 @@ CFilePrefix::CFile(
 	}
 }
 //==============================================================================
-std::error_code CFilePrefix::createFile(
+std::error_code CFile::createFile(
 	const DWORD dwDesiredAccess,
 	const DWORD dwShareMode,
 	const DWORD dwCreationDisposition,
-	DWORD dwFlagsAndAttributes)
+	const DWORD dwFlagsAndAttributes)
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
 		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
-
-	dwFlagsAndAttributes |= FILE_FLAG_OVERLAPPED;
 
 	try
 	{
@@ -65,7 +63,7 @@ std::error_code CFilePrefix::createFile(
 			dwShareMode,
 			NULL,
 			dwCreationDisposition,
-			dwFlagsAndAttributes,
+			dwFlagsAndAttributes | FILE_FLAG_OVERLAPPED,
 			NULL);
 
 		if (!hHandle.isValid())
@@ -83,12 +81,12 @@ std::error_code CFilePrefix::createFile(
 	}
 }
 //==============================================================================
-bool CFilePrefix::isOpen() noexcept
+bool CFile::isOpen() noexcept
 {
 	return isBindHandle();
 }
 //==============================================================================
-std::error_code CFilePrefix::startAsyncReadFile(
+std::error_code CFile::startAsyncReadFile(
 	const PBYTE bufferRead,
 	const DWORD dwBufferSize,
 	const UINT64 offset)
@@ -116,7 +114,7 @@ std::error_code CFilePrefix::startAsyncReadFile(
 	}
 }
 //==============================================================================
-std::error_code CFilePrefix::startReadFile(
+std::error_code CFile::startReadFile(
 	const PBYTE bufferRead,
 	const DWORD dwBufferSize,
 	const PDWORD pdwReturnSize,
@@ -141,7 +139,7 @@ std::error_code CFilePrefix::startReadFile(
 	}
 }
 //==============================================================================
-std::error_code CFilePrefix::startAsyncWriteFile(
+std::error_code CFile::startAsyncWriteFile(
 	const PBYTE bufferWrite,
 	const DWORD dwBufferSize,
 	const UINT64 offset)
@@ -169,7 +167,7 @@ std::error_code CFilePrefix::startAsyncWriteFile(
 	}
 }
 //==============================================================================
-std::error_code CFilePrefix::startWriteFile(
+std::error_code CFile::startWriteFile(
 	const PBYTE bufferWrite,
 	const DWORD dwBufferSize,
 	const PDWORD pdwReturnSize,
@@ -194,34 +192,49 @@ std::error_code CFilePrefix::startWriteFile(
 	}
 }
 //==============================================================================
-void CFilePrefix::close() noexcept
+void CFile::close() noexcept
 {
 	closeHandle();
 }
 //==============================================================================
-std::error_code CFilePrefix::getFileSize(
+std::error_code CFile::getFileSize(
 	UINT64& uSize)
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
 		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
-	std::error_code ec;
-	uSize = std::filesystem::file_size(getPath(), ec);
-
-	return ec;
+	try
+	{
+		std::error_code ec;
+		uSize = std::filesystem::file_size(getPath(), ec);
+		return ec;
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(logger::EMessageType::critical, ex);
+		throw;
+	}
 }
 //==============================================================================
-std::error_code CFilePrefix::deleteFile()
+std::error_code CFile::deleteFile()
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
 		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
 
-	return deleteFile(getPath());
+	try
+	{
+		return deleteFile(getPath());
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(logger::EMessageType::critical, ex);
+		throw;
+	}
 }
 //==============================================================================
-std::error_code CFilePrefix::clearFile() noexcept
+std::error_code CFile::clearFile() noexcept
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
@@ -243,14 +256,22 @@ std::error_code CFilePrefix::clearFile() noexcept
 	return std::error_code(dwResult, std::system_category());
 }
 //==============================================================================
-std::filesystem::path CFilePrefix::getPath()
+std::filesystem::path CFile::getPath()
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
 
-	return _filePath;
+	try
+	{
+		return _filePath;
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(logger::EMessageType::critical, ex);
+		throw;
+	}
 }
 //==============================================================================
-std::error_code CFilePrefix::deleteFile(
+std::error_code CFile::deleteFile(
 	const std::filesystem::path filePath) noexcept
 {
 	const auto bResult = DeleteFile(filePath.c_str());
@@ -260,7 +281,7 @@ std::error_code CFilePrefix::deleteFile(
 		std::system_category());
 }
 //==============================================================================
-void CFilePrefix::asyncReadComplitionHandler(
+void CFile::asyncReadComplitionHandler(
 	const PBYTE bufferRead,
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
@@ -268,9 +289,9 @@ void CFilePrefix::asyncReadComplitionHandler(
 	asyncReadFileComplitionHandler(bufferRead, dwReturnSize, ec);
 
 	endOperation();
-};
+}
 //==============================================================================
-void CFilePrefix::asyncWriteComplitionHandler(
+void CFile::asyncWriteComplitionHandler(
 	const PBYTE bufferWrite,
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
@@ -278,15 +299,17 @@ void CFilePrefix::asyncWriteComplitionHandler(
 	asyncWriteFileComplitionHandler(bufferWrite, dwReturnSize, ec);
 
 	endOperation();
-};
-//==============================================================================
-void CFilePrefix::release() noexcept
-{
-	close();
-	__super::release();
 }
 //==============================================================================
-void CFilePrefix::asyncReadFileComplitionHandler(
+void CFile::release(
+	const bool bIsWait) noexcept
+{
+	__super::release(false);
+	close();
+	__super::release(bIsWait);
+}
+//==============================================================================
+void CFile::asyncReadFileComplitionHandler(
 	const PBYTE bufferRead,
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
@@ -294,9 +317,9 @@ void CFilePrefix::asyncReadFileComplitionHandler(
 	UNREFERENCED_PARAMETER(bufferRead);
 	UNREFERENCED_PARAMETER(dwReturnSize);
 	UNREFERENCED_PARAMETER(ec);
-};
+}
 //==============================================================================
-void CFilePrefix::asyncWriteFileComplitionHandler(
+void CFile::asyncWriteFileComplitionHandler(
 	const PBYTE bufferWrite,
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
@@ -304,10 +327,10 @@ void CFilePrefix::asyncWriteFileComplitionHandler(
 	UNREFERENCED_PARAMETER(bufferWrite);
 	UNREFERENCED_PARAMETER(dwReturnSize);
 	UNREFERENCED_PARAMETER(ec);
-};
+}
 //==============================================================================
-CFilePrefix::~CFile()
+CFile::~CFile()
 {
-	release();
+	release(true);
 }
 //==============================================================================

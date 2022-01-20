@@ -1,16 +1,16 @@
 #include "../stdafx.h"
 
-using CLoggerToFilePrefix = wname::logger::CLoggerToFile;
+using wname::logger::CLoggerToFile;
 
 //==============================================================================
-CLoggerToFilePrefix::CLoggerToFile(
-	const std::filesystem::path logPath)
-	:_logPath(logPath.lexically_normal())
+CLoggerToFile::CLoggerToFile(
+	const std::filesystem::path logPath) :
+	_logPath(logPath.lexically_normal())
 {
 
 }
 //==============================================================================
-void CLoggerToFilePrefix::logWrite(
+void CLoggerToFile::logWrite(
 	const std::wstring& wStr) const
 {	
 	std::wofstream fileStream(_logPath, std::ios::app);

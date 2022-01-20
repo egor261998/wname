@@ -1,34 +1,19 @@
 #include "../stdafx.h"
 
-using CTcpClientPrefix = wname::network::CTcpClient;
-using CSocketAddressPrefix = wname::network::socket::CSocketAddress;
-using ESocketStatePrefix = wname::network::socket::ESocketState;
+using wname::network::CTcpClient;
+using wname::network::socket::CSocketAddress;
+using wname::network::socket::ESocketState;
 
 //==============================================================================
-CTcpClientPrefix::CTcpClient(
+CTcpClient::CTcpClient(
 	const std::string strIp,
 	const WORD wPort,
-	const std::shared_ptr<io::iocp::CIocp>& pIocp)
-:CSocketIo(pIocp)
+	const std::shared_ptr<io::iocp::CIocp>& pIocp) :
+	ITcpClient(pIocp)
 {
 	try
 	{
 		_socketAddress = socket::CSocketAddress(strIp, wPort);
-
-		/** инициализируем сокет */
-		_socket = socket::CSocketHandle(SOCK_STREAM, IPPROTO_TCP);
-		if (!_socket.isValid())
-		{
-			const auto dwResult = WSAGetLastError();
-
-			std::string strError =
-				"Create of client socket failed with error: " +
-				std::to_string(dwResult);
-
-			throw std::runtime_error(strError);
-		}
-		
-		bindHandle(_socket);
 	}
 	catch (const std::exception& ex)
 	{
@@ -37,7 +22,7 @@ CTcpClientPrefix::CTcpClient(
 	}
 }
 //==============================================================================
-std::error_code CTcpClientPrefix::connect() noexcept
+std::error_code CTcpClient::connect() noexcept
 {
 	misc::CCounterScoped counter(*this);
 
@@ -50,21 +35,21 @@ std::error_code CTcpClientPrefix::connect() noexcept
 		/** отдельная область видимости для удобства блокировки */
 		cs::CCriticalSectionScoped lock(_csCounter);
 
-		if (_eSocketState == ESocketStatePrefix::disconnected)
+		if (_eSocketState == ESocketState::disconnected)
 		{
 			/** действуем */
-			_eSocketState = ESocketStatePrefix::connecting;
+			_eSocketState = ESocketState::connecting;
 
 			/** пробуем соединиться */
 			if (::connect(_socket, _socketAddress, _socketAddress.size()) ==
 				SOCKET_ERROR)
 			{
 				ec = std::error_code(WSAGetLastError(), std::system_category());
-				_eSocketState = ESocketStatePrefix::disconnected;
+				_eSocketState = ESocketState::disconnected;
 			}
 			else
 			{
-				_eSocketState = ESocketStatePrefix::connected;
+				_eSocketState = ESocketState::connected;
 			}
 		}
 		else
@@ -78,170 +63,12 @@ std::error_code CTcpClientPrefix::connect() noexcept
 	return ec;
 }
 //==============================================================================
-std::error_code CTcpClientPrefix::setKeepAlive(
-	const bool bValue) noexcept
-{
-	misc::CCounterScoped counter(*this);
-
-	if (!counter.isStartOperation())
-		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
-
-	cs::CCriticalSectionScoped lock(_csCounter);
-
-	return _socket.setKeepAlive(bValue);
-}
-//==============================================================================
-std::error_code CTcpClientPrefix::startAsyncSend(
-	const PBYTE bufferSend,
-	const DWORD dwBufferSize,
-	const DWORD dwFlags)
-{
-	misc::CCounterScoped counter(*this);
-
-	if (!counter.isStartOperation())
-		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
-
-	try
-	{
-		if (bufferSend == nullptr || dwBufferSize == 0)
-		{
-			throw std::invalid_argument("bufferSend == nullptr || dwBufferSize == 0");
-		}
-
-		addAsyncIoPending();
-		const auto ec = __super::startAsyncSend(
-			bufferSend, dwBufferSize, dwFlags);
-		if (ec)
-		{
-			delAsyncIoPending();
-			disconnect(ec);
-			return ec;
-		}
-
-		counter.release();
-		return ec;
-	}
-	catch (const std::exception& ex)
-	{
-		_pIocp->log(logger::EMessageType::critical, ex);
-		disconnect(std::error_code(ERROR_INVALID_FUNCTION, std::system_category()));
-		throw;
-	}
-}
-//==============================================================================
-std::error_code CTcpClientPrefix::startSend(
-	const PBYTE bufferSend,
-	const DWORD dwBufferSize,
-	const PDWORD pdwReturnSize,
-	const DWORD dwFlags)
-{
-	misc::CCounterScoped counter(*this);
-
-	if (!counter.isStartOperation())
-		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
-
-	try
-	{
-		if (bufferSend == nullptr || dwBufferSize == 0)
-		{
-			throw std::invalid_argument("bufferSend == nullptr || dwBufferSize == 0");
-		}
-
-		const auto ec = __super::startSend(
-			bufferSend, dwBufferSize, pdwReturnSize, dwFlags);
-		if (ec)
-		{
-			disconnect(ec);
-			return ec;
-		}
-
-		return ec;
-	}
-	catch (const std::exception& ex)
-	{
-		_pIocp->log(logger::EMessageType::critical, ex);
-		disconnect(std::error_code(ERROR_INVALID_FUNCTION, std::system_category()));
-		throw;
-	}
-}
-//==============================================================================
-std::error_code CTcpClientPrefix::startAsyncRecv(
-	const PBYTE bufferRecv,
-	const DWORD dwBufferSize,
-	const DWORD dwFlags)
-{
-	misc::CCounterScoped counter(*this);
-
-	if (!counter.isStartOperation())
-		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
-
-	try
-	{
-		if (bufferRecv == nullptr || dwBufferSize == 0)
-		{
-			throw std::invalid_argument("bufferSend == nullptr || dwBufferSize == 0");
-		}
-
-		addAsyncIoPending();
-		const auto ec = __super::startAsyncRecv(
-			bufferRecv, dwBufferSize, dwFlags);
-		if (ec)
-		{
-			delAsyncIoPending();
-			disconnect(ec);
-			return ec;
-		}
-
-		counter.release();
-		return ec;
-	}
-	catch (const std::exception& ex)
-	{
-		_pIocp->log(logger::EMessageType::critical, ex);
-		disconnect(std::error_code(ERROR_INVALID_FUNCTION, std::system_category()));
-		throw;
-	}
-}
-//==============================================================================
-std::error_code CTcpClientPrefix::startRecv(
-	const PBYTE bufferRecv,
-	const DWORD dwBufferSize,
-	const PDWORD pdwReturnSize,
-	const DWORD dwFlags)
-{
-	misc::CCounterScoped counter(*this);
-
-	if (!counter.isStartOperation())
-		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
-
-	try
-	{
-		if (bufferRecv == nullptr || dwBufferSize == 0)
-		{
-			throw std::invalid_argument("bufferSend == nullptr || dwBufferSize == 0");
-		}
-
-		const auto ec = __super::startRecv(
-			bufferRecv, dwBufferSize, pdwReturnSize, dwFlags);
-		if (ec)
-		{
-			disconnect(ec);
-			return ec;
-		}
-
-		return ec;
-	}
-	catch (const std::exception& ex)
-	{
-		_pIocp->log(logger::EMessageType::critical, ex);
-		disconnect(std::error_code(ERROR_INVALID_FUNCTION, std::system_category()));
-		throw;
-	}
-}
-//==============================================================================
-void CTcpClientPrefix::disconnect(
+void CTcpClient::disconnect(
 	const std::error_code ec) noexcept
 {
+	/** счетчик операций для корректного завершения контекста */
+	misc::CCounterScoped counter(*this);
+
 	bool bIsRepeatDisconnect = false;
 	bool bIsDisconnected = false;
 	std::error_code ecDisconnected;
@@ -251,16 +78,16 @@ void CTcpClientPrefix::disconnect(
 
 		switch (_eSocketState)
 		{
-		case ESocketStatePrefix::disconnected:
+		case ESocketState::disconnected:
 			break;
-		case ESocketStatePrefix::disconnecting:
+		case ESocketState::disconnecting:
 		{
 			/** еще не все операции отработали */
 			if (_nAsyncIoPending > 0)
 				break;
 
-			_eSocketState = ESocketStatePrefix::disconnected;
-			if (!isInitialize())
+			_eSocketState = ESocketState::disconnected;
+			if (!counter.isStartOperation())
 			{
 				/** просто закрываемся */
 				ecDisconnected = std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
@@ -298,11 +125,11 @@ void CTcpClientPrefix::disconnect(
 
 			break;
 		}
-		case ESocketStatePrefix::connecting:
+		case ESocketState::connecting:
 			break;
-		case ESocketStatePrefix::connected:
+		case ESocketState::connected:
 		{
-			_eSocketState = ESocketStatePrefix::disconnecting;
+			_eSocketState = ESocketState::disconnecting;
 			_ec = ec;
 
 			try
@@ -341,109 +168,29 @@ void CTcpClientPrefix::disconnect(
 	}
 }
 //==============================================================================
-CSocketAddressPrefix CTcpClientPrefix::getAddress() noexcept
+CSocketAddress CTcpClient::getAddress() noexcept
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
 
 	return _socketAddress;
 }
 //==============================================================================
-ESocketStatePrefix CTcpClientPrefix::getState() noexcept
+CSocketAddress CTcpClient::getAddressRemote() noexcept
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
 
-	return _eSocketState;
+	return _socketAddress;
 }
 //==============================================================================
-void CTcpClientPrefix::asyncSendComplitionHandler(
-	const PBYTE bufferSend,
-	const DWORD dwReturnSize,
-	const std::error_code ec) noexcept
+void CTcpClient::release(
+	const bool bIsWait) noexcept
 {
-	assert(bufferSend != nullptr);
-
-	delAsyncIoPending();
-	clientAsyncSendComplitionHandler(bufferSend, dwReturnSize, ec);
-	if (ec)
-		disconnect(ec);
-
-	endOperation();
+	__super::release(bIsWait);
 }
 //==============================================================================
-void CTcpClientPrefix::asyncRecvComplitionHandler(
-	const PBYTE bufferRecv,
-	const DWORD dwReturnSize,
-	const std::error_code ec) noexcept
-{
-	assert(bufferRecv != nullptr);
-
-	delAsyncIoPending();
-	clientAsyncRecvComplitionHandler(bufferRecv, dwReturnSize, ec);
-	if (ec)
-		disconnect(ec);
-
-	endOperation();
-}
-//==============================================================================
-void CTcpClientPrefix::addAsyncIoPending() noexcept
-{
-	cs::CCriticalSectionScoped lock(_csCounter);
-
-	_nAsyncIoPending++;
-}
-//==============================================================================
-void CTcpClientPrefix::delAsyncIoPending() noexcept
-{
-	cs::CCriticalSectionScoped lock(_csCounter);
-
-	assert(_nAsyncIoPending > 0);
-	_nAsyncIoPending--;
-}
-//==============================================================================
-void CTcpClientPrefix::clientAsyncRecvComplitionHandler(
-	const PBYTE bufferRecv,
-	const DWORD dwReturnSize,
-	const std::error_code ec) noexcept
-{
-	UNREFERENCED_PARAMETER(bufferRecv);
-	UNREFERENCED_PARAMETER(dwReturnSize);
-	UNREFERENCED_PARAMETER(ec);
-}
-//==============================================================================
-void CTcpClientPrefix::clientAsyncSendComplitionHandler(
-	const PBYTE bufferSend,
-	const DWORD dwReturnSize,
-	const std::error_code ec) noexcept
-{
-	UNREFERENCED_PARAMETER(bufferSend);
-	UNREFERENCED_PARAMETER(dwReturnSize);
-	UNREFERENCED_PARAMETER(ec);
-}
-//==============================================================================
-void CTcpClientPrefix::clientConnected(
-	const std::error_code ec) noexcept
-{
-	UNREFERENCED_PARAMETER(ec);
-}
-//==============================================================================
-void CTcpClientPrefix::clientDisconnected(
-	const std::error_code ec) noexcept
-{
-	UNREFERENCED_PARAMETER(ec);
-}
-//==============================================================================
-void CTcpClientPrefix::release() noexcept
-{
-	/** отключаем */
-	disconnect();
-
-	/** ждем завершения всего */
-	__super::release();
-}
-//==============================================================================
-CTcpClientPrefix::~CTcpClient()
+CTcpClient::~CTcpClient()
 {
 	/** завершение всего */
-	release();
+	release(true);
 }
 //==============================================================================

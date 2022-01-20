@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace network
 {
 	/** класс TCP сервера */
-	class CTcpServer : protected socket::CSocketIo
+	class WNAME CTcpServer : protected socket::CSocketIo
 	{
 	#pragma region Public_Inner
 	public:
@@ -24,7 +24,7 @@ namespace network
 		* @param wPort - порт сервера.
 		* @param pIocp - механизм Iocp.
 		*/
-		WNAME CTcpServer(
+		CTcpServer(
 			const std::string strIp,
 			const WORD wPort,
 			const std::shared_ptr<io::iocp::CIocp>& pIocp);
@@ -33,24 +33,26 @@ namespace network
 		* включить TCP сервер.
 		* @return - результат выполнения.
 		*/
-		WNAME std::error_code connectServer();
+		std::error_code connectServer();
 	//==========================================================================
 		/**
 		* отключить TCP сервер.
 		* @param ec - код ошибки завершения.
 		*/
-		WNAME void disconnectServer(
+		void disconnectServer(
 			const std::error_code ec = std::error_code()) noexcept;
 	//==========================================================================
 		/**
 		* закончить работу.
+		* @param bIsWait - признак ожидания.
 		*/
-		WNAME void release() noexcept override;
+		void release(
+			const bool bIsWait) noexcept override;
 	//==========================================================================
 		/**
 		* деструктор TCP сервера.
 		*/
-		WNAME ~CTcpServer();
+		~CTcpServer();
 	//==========================================================================
 		CTcpServer(const CTcpServer&) = delete;
 		CTcpServer(CTcpServer&&) = delete;
@@ -66,20 +68,20 @@ namespace network
 		* виртуальный обработчик создания клиента.
 		* @return - клиент
 		*/
-		WNAME virtual std::unique_ptr<CTcpConnectedClient> createClient();
+		virtual std::unique_ptr<CTcpConnectedClient> createClient();
 	//==========================================================================
 		/**
 		* виртуальный обработчик события отключения сервера.
 		* @param ec - код ошибки.
 		*/
-		WNAME virtual void serverConnected(
+		virtual void serverConnected(
 			const std::error_code ec) noexcept;
 	//==========================================================================
 		/**
 		* виртуальный обработчик события отключения сервера.
 		* @param ec - код ошибки.
 		*/
-		WNAME virtual void serverDisconnected(
+		virtual void serverDisconnected(
 			const std::error_code ec) noexcept;
 	//==========================================================================
 	#pragma endregion
@@ -91,27 +93,27 @@ namespace network
 		* удаление клиента из списка.
 		* @param pClient - удаляемый клиент.
 		*/
-		WNAME void removeClient(
+		void removeClient(
 			CTcpConnectedClient* const pClient) noexcept;
 	//==========================================================================
 		/**
 		* добавить клиента в список.
 		* @return - подключаемый клиент.
 		*/
-		WNAME CTcpConnectedClient* addClient();
+		CTcpConnectedClient* addClient();
 	//==========================================================================
 		/**
 		* обработчик события принятия нового подключения со всех TCP серверов.
 		* @param pAsyncOperation - асинхронная операция.
 		*/
-		WNAME static void clientAcceptedEventHandler(
+		static void clientAcceptedEventHandler(
 			io::iocp::CAsyncOperation* const pAsyncOperation) noexcept;
 	//==========================================================================
 		/**
 		* старт прослушивания для ожидания нового подключения.
 		* @return - код ошибки.
 		*/
-		WNAME std::error_code startListen();
+		std::error_code startListen();
 	//==========================================================================
 	#pragma endregion
 

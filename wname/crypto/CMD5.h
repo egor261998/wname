@@ -3,7 +3,7 @@
 _WNAME_BEGIN
 namespace crypto
 {
-	class CMD5 final
+	class WNAME CMD5 final
 	{
 	#pragma region Private_Inner
 	private:
@@ -25,20 +25,20 @@ namespace crypto
 		/**
 		* конструктор по-умолчанию.
 		*/
-		WNAME CMD5() noexcept;
+		CMD5() noexcept;
 	//==========================================================================
 		/**
 		* конструктор из свертки.
 		* @param hash - копируемые данные.
 		*/
-		WNAME CMD5(
+		CMD5(
 			const BYTE* const hash) noexcept;
 	//==========================================================================
 		/**
 		* конструктор копирования.
 		* @param md5 - копируемый объект.
 		*/
-		WNAME CMD5(
+		CMD5(
 			const CMD5& md5) noexcept;
 	//==========================================================================
 		/**
@@ -46,7 +46,7 @@ namespace crypto
 		* @param md5 - перемещаемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME CMD5(
+		CMD5(
 			CMD5&& md5) noexcept;
 	//==========================================================================
 		/**
@@ -54,7 +54,7 @@ namespace crypto
 		* @param input - входной буфер.
 		* @param inputLen - размер буфера.
 		*/
-		WNAME void update(
+		void update(
 			const BYTE* input,
 			DWORD inputLen) noexcept;
 	//==========================================================================
@@ -62,25 +62,25 @@ namespace crypto
 		* закончить работу со сверткой.
 		* @return - указатель на свертку.
 		*/
-		WNAME const BYTE* const final() noexcept;
+		const BYTE* const final() noexcept;
 	//==========================================================================
 		/**
 		* очистка.
 		*/
-		WNAME void clear() noexcept;
+		void clear() noexcept;
 	//==========================================================================
 		/**
 		* получить свертку.
 		* @return - указатель на свертку.
 		*/
-		WNAME const BYTE* const getHash() const noexcept;
+		const BYTE* const getHash() const noexcept;
 	//==========================================================================
 		/**
 		* оператор копирования.
 		* @param md5 - копируемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME CMD5& operator=(
+		CMD5& operator=(
 			const CMD5& md5) noexcept;
 	//==========================================================================
 		/**
@@ -88,7 +88,7 @@ namespace crypto
 		* @param md5 - перемещаемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME CMD5& operator=(
+		CMD5& operator=(
 			CMD5&& md5) noexcept;
 	//==========================================================================
 		/**
@@ -96,7 +96,7 @@ namespace crypto
 		* @param md5 - объект.
 		* @return - результат сравнения.
 		*/
-		WNAME bool operator==(
+		bool operator==(
 			const CMD5& md5) noexcept;
 	//==========================================================================
 		/**
@@ -104,13 +104,13 @@ namespace crypto
 		* @param md5 - объект.
 		* @return - результат сравнения.
 		*/
-		WNAME bool operator!=(
+		bool operator!=(
 			const CMD5& md5) noexcept;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME ~CMD5() = default;
+		~CMD5() = default;
 	//==========================================================================
 	#pragma endregion
 
@@ -122,7 +122,7 @@ namespace crypto
 		* @param state - состояние.
 		* @param block - блок преобразования..
 		*/
-		WNAME static void transform(
+		static void transform(
 			DWORD* state,
 			const BYTE* const block) noexcept;
 	//==========================================================================
@@ -132,7 +132,7 @@ namespace crypto
 		* @param input - входной буфер.
 		* @param len - размер буферов.
 		*/
-		WNAME static void encode(
+		static void encode(
 			BYTE* output,
 			const DWORD* const input,
 			const DWORD len) noexcept;
@@ -143,7 +143,7 @@ namespace crypto
 		* @param input - входной буфер.
 		* @param len - размер буферов.
 		*/
-		WNAME static void decode(
+		static void decode(
 			DWORD* output,
 			const BYTE* const input,
 			const DWORD len) noexcept;

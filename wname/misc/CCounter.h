@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace misc
 {
 	/** счетчик операций */
-	class CCounter
+	class WNAME CCounter
 	{
 	#pragma region Public_Method
 	public:
@@ -12,19 +12,19 @@ namespace misc
 		/**
 		* конструктор.
 		*/
-		WNAME CCounter() noexcept(false);
+		CCounter() noexcept(false) = default;
 	//==========================================================================
 		/**
 		* инициализирован ли счетчик операций.
 		*/
-		WNAME bool isInitialize() noexcept;
+		bool isInitialize() noexcept;
 	//==========================================================================
 		/**
 		* старт новой операции.
 		* @param nCount - количество операций.
 		* @return - успех старта операции.
 		*/
-		WNAME bool startOperation(
+		bool startOperation(
 			const size_t nCount = 1) noexcept;
 	//==========================================================================
 		/**
@@ -32,7 +32,7 @@ namespace misc
 		* @param nCount - количество операций.
 		* @return - возможность завершения.
 		*/
-		WNAME bool endOperation(
+		bool endOperation(
 			const size_t nCount = 1) noexcept;
 	//==========================================================================
 		/**
@@ -40,31 +40,33 @@ namespace misc
 		* @param nCount - смещение ссылок.
 		* @return - TRUE если операций в обработке больше чем указано в параметре.
 		*/
-		WNAME bool checkOperation(
+		bool checkOperation(
 			const size_t nCount = 0) noexcept;
 	//==========================================================================
 		/**
 		* ожидание операций.
 		* @param nCount - смещение ссылок.
 		*/
-		WNAME void waitOperation(
+		void waitOperation(
 			const size_t nCount = 0);
 	//==========================================================================
 		/**
-		* закончить работу и дождаться всех операций.
+		* закончить работу с счетчиком операций.
+		* @param bIsWait - признак ожидания.
 		*/
-		WNAME virtual void release() noexcept;
+		virtual void release(
+			const bool bIsWait) noexcept;
 	//==========================================================================
 		/**
 		* удаление объекта после того как отработает последняя операция.
-		* @return - объект удалился.
+		* @return - признак того что объект удалился.
 		*/
-		WNAME bool deleteAfterEndOperation() noexcept;
+		bool deleteAfterEndOperation() noexcept;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME virtual ~CCounter();
+		virtual ~CCounter();
 	//==========================================================================
 		CCounter(const CCounter&) = delete;
 		CCounter(CCounter&&) = delete;
@@ -81,7 +83,7 @@ namespace misc
 		* @param bResultFree - признак завершения.
 		* @param isDelete - нужно ли удалять объект.
 		*/
-		WNAME void processingOperation(
+		void processingOperation(
 			bool& bResultFree,
 			bool& isDelete) noexcept;
 	//==========================================================================
@@ -91,7 +93,7 @@ namespace misc
 	private:
 	//==========================================================================	
 		/** произвольное ожидание операции */
-		std::unordered_map<uint64_t, std::list<handle::CEvent>> _counterWait;
+		std::map<size_t, std::list<handle::CEvent>> _counterWait;
 
 		/** количество выполняемых асинхронных операций */
 		size_t _nCounterCount = 0;

@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace network::socket
 {
 	/** описатель для сокета */
-	class CSocketHandle final : public handle::CHandle
+	class WNAME CSocketHandle final : public handle::CHandle
 	{
 	#pragma region Public_Method
 	public:
@@ -12,14 +12,14 @@ namespace network::socket
 		/**
 		* конструктор сокета.
 		*/
-		WNAME CSocketHandle() noexcept = default;
+		CSocketHandle() noexcept = default;
 	//==========================================================================
 		/**
 		* конструктор сокета.
 		* @patam type - тип сокета.
 		* @param protocol - протокол.
 		*/
-		WNAME CSocketHandle(
+		CSocketHandle(
 			const int type,
 			const int protocol);
 	//==========================================================================
@@ -27,52 +27,52 @@ namespace network::socket
 		* конструктор копирования.
 		* @param socket - описатель копирования.
 		*/
-		WNAME CSocketHandle(
+		CSocketHandle(
 			const CSocketHandle& socket) noexcept;
 	//==========================================================================
 		/**
 		* конструктор перемещения.
 		* @param socket - описатель перемещения.
 		*/
-		WNAME CSocketHandle(
+		CSocketHandle(
 			CSocketHandle&& socket) noexcept;
 	//==========================================================================
 		/**
 		* получить функцию AcceptEx.
 		* @return - указатель на функцию AcceptEx.
 		*/
-		WNAME LPFN_ACCEPTEX getAcceptEx() const;
+		LPFN_ACCEPTEX getAcceptEx() const;
 	//==========================================================================
 		/**
 		* получить функцию ConnectEx.
 		* @return - указатель на функцию ConnectEx.
 		*/
-		WNAME LPFN_CONNECTEX getConnectEx() const;
+		LPFN_CONNECTEX getConnectEx() const;
 	//==========================================================================
 		/**
 		* получить функцию GetAcceptExSockAddrs.
 		* @return - указатель на функцию GetAcceptExSockAddrs.
 		*/
-		WNAME LPFN_GETACCEPTEXSOCKADDRS getGetAcceptExSockAddrs() const;
+		LPFN_GETACCEPTEXSOCKADDRS getGetAcceptExSockAddrs() const;
 	//==========================================================================
 		/**
 		* получить функцию Disconnectex.
 		* @return - указатель на функцию Disconnectex.
 		*/
-		WNAME LPFN_DISCONNECTEX getDisconnectex() const;
+		LPFN_DISCONNECTEX getDisconnectex() const;
 	//==========================================================================
 		/**
 		* получить объект сокета.
 		* @return - объект сокета.
 		*/
-		WNAME SOCKET getSocket() const noexcept;
+		SOCKET getSocket() const noexcept;
 	//==========================================================================
 		/**
 		* установить значение keep alive для объекта сокета.
 		* @param bValue - значение установки.
 		* @return - код ошибки.
 		*/
-		WNAME std::error_code setKeepAlive(
+		std::error_code setKeepAlive(
 			const bool bValue) const noexcept;
 	//==========================================================================
 		/**
@@ -80,7 +80,7 @@ namespace network::socket
 		* @param socket - новый сокет.
 		* @return - текущий объект.
 		*/
-		WNAME CSocketHandle& operator=(
+		CSocketHandle& operator=(
 			const SOCKET socket);
 	//==========================================================================
 		/**
@@ -88,7 +88,7 @@ namespace network::socket
 		* @param socket - копируемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME CSocketHandle& operator=(
+		CSocketHandle& operator=(
 			const CSocketHandle& socket) noexcept;
 	//==========================================================================
 		/**
@@ -96,19 +96,19 @@ namespace network::socket
 		* @param socket - перемещаемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME CSocketHandle& operator=(
+		CSocketHandle& operator=(
 			CSocketHandle&& socket) noexcept;
 	//==========================================================================
 		/**
 		* оператор получения сокета.
 		* @return - описатель.
 		*/
-		WNAME operator SOCKET() const noexcept;
+		operator SOCKET() const noexcept;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME ~CSocketHandle();
+		~CSocketHandle();
 	//==========================================================================
 	#pragma endregion
 
@@ -121,7 +121,7 @@ namespace network::socket
 		* @return - указатель на функцию.
 		*/
 		template<class T>
-		WNAME T getWSAIoctl(GUID& guid) const;
+		T getWSAIoctl(GUID& guid) const;
 	//==========================================================================
 	#pragma endregion
 	};

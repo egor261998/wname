@@ -1,14 +1,14 @@
 #include "../../stdafx.h"
 
 /** объ€вление через препроцессор, тк класс приватный */
-#define CThreadPoolPrefix wname::io::iocp::CIocp::CThreadPool
+using wname::io::iocp::CIocp;
 
 //==============================================================================
-CThreadPoolPrefix::CThreadPool(
+CIocp::CThreadPool::CThreadPool(
 	CIocp* const pIocp,
 	const DWORD minThreadCount,
-	const DWORD maxThreadCount)
-:_pIocp(pIocp)
+	const DWORD maxThreadCount) :
+	_pIocp(pIocp)
 {
 	if (pIocp == nullptr)
 	{
@@ -34,7 +34,7 @@ CThreadPoolPrefix::CThreadPool(
 		catch (const std::exception&)
 		{
 			/** нужно свернутьс€ */
-			release();
+			release(true);
 
 			/** падаем дальше */
 			throw;
@@ -49,7 +49,7 @@ CThreadPoolPrefix::CThreadPool(
 	}
 }
 //==============================================================================
-void CThreadPoolPrefix::delWorker(
+void CIocp::CThreadPool::delWorker(
 	const CThreadPoolWorker* const pThreadPoolWorker) noexcept
 {
 	if (pThreadPoolWorker == nullptr)
@@ -62,7 +62,7 @@ void CThreadPoolPrefix::delWorker(
 	_nCurrentThreadCount--;
 }
 //==============================================================================
-bool CThreadPoolPrefix::canFreeWorker(
+bool CIocp::CThreadPool::canFreeWorker(
 	CThreadPoolWorker* const pThreadPoolWorker) noexcept
 {
 	if (pThreadPoolWorker == nullptr)
@@ -93,7 +93,7 @@ bool CThreadPoolPrefix::canFreeWorker(
 	return true;
 }
 //==============================================================================
-bool CThreadPoolPrefix::canAddWorker(
+bool CIocp::CThreadPool::canAddWorker(
 	bool bAddAnyway)
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
@@ -134,14 +134,18 @@ bool CThreadPoolPrefix::canAddWorker(
 	return true;
 }
 //==============================================================================
-void CThreadPoolPrefix::decrementBusyWorker() noexcept
+void CIocp::CThreadPool::decrementBusyWorker() noexcept
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
 	_nBusyThreadCount--;
 }
 //==============================================================================
-void CThreadPoolPrefix::release() noexcept
+void CIocp::CThreadPool::release(
+	const bool bIsWait) noexcept
 {
+	/** завершаем работу */
+	__super::release(false);
+
 	{
 		/** отдельна€ область видимости дл€ синхронизации */
 		cs::CCriticalSectionScoped lock(_csCounter);
@@ -174,11 +178,14 @@ void CThreadPoolPrefix::release() noexcept
 	}
 
 	/** ожидать нужно тут */
-	__super::release();
+	if (bIsWait)
+	{
+		__super::release(bIsWait);
+	}
 }
 //==============================================================================
-CThreadPoolPrefix::~CThreadPool()
+CIocp::CThreadPool::~CThreadPool()
 {
-	release();
+	release(true);
 }
 //==============================================================================

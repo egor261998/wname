@@ -4,7 +4,8 @@ _WNAME_BEGIN
 namespace cs
 {
 	/** реализация критических секций в классе */
-	class CCriticalSection final : private CRITICAL_SECTION
+	class WNAME CCriticalSection final : 
+		private CRITICAL_SECTION
 	{
 	#pragma region Public_Method
 	public:
@@ -12,13 +13,13 @@ namespace cs
 		/**
 		* конструктор по умолчанию.
 		*/
-		WNAME CCriticalSection() noexcept;
+		CCriticalSection() noexcept;
 	//==========================================================================
 		/**
 		* блокировка.
 		*/
 		_Acquires_lock_(*this)
-		WNAME void lock() noexcept;
+		 void lock() noexcept;
 	//==========================================================================
 		/**
 		* попытка блокировки.
@@ -26,18 +27,18 @@ namespace cs
 		*/
 		_Acquires_lock_(*this)
 		_Success_(return != false)
-		WNAME bool tryLock() noexcept;
+		bool tryLock() noexcept;
 	//==========================================================================
 		/**
 		* разблокировка.
 		*/
 		_Releases_lock_(*this)
-		WNAME void unlock() noexcept;
+		void unLock() noexcept;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME ~CCriticalSection();
+		~CCriticalSection();
 	//==========================================================================
 		CCriticalSection(const CCriticalSection&) = delete;
 		CCriticalSection(CCriticalSection&&) = delete;

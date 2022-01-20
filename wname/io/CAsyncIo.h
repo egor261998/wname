@@ -13,7 +13,7 @@ namespace io
 	#define BUFFER_64K 65536
 
 	/** асинхронный ввод/вывод */
-	class CAsyncIo : protected misc::CCounter
+	class WNAME CAsyncIo : protected misc::CCounter
 	{
 	#pragma region Public_Method
 	public:
@@ -22,33 +22,33 @@ namespace io
 		* конструктор по умолчанию.
 		* @param pIocp - механизм ввода/вывода.
 		*/
-		WNAME CAsyncIo(
+		CAsyncIo(
 			const std::shared_ptr<iocp::CIocp>& pIocp);
 	//==========================================================================
 		/**
 		* инициализация асинхронной операции ввода/вывода.
 		* @param hHandle - описатель.
 		*/
-		WNAME void bindHandle(
+		void bindHandle(
 			handle::CHandle hHandle);
 	//==========================================================================
 		/**
 		* проверка наличия привязанного описателя.
 		* @return - результат проверки.
 		*/
-		WNAME bool isBindHandle() noexcept;
+		bool isBindHandle() noexcept;
 	//==========================================================================
 		/**
 		* изменить описатель.
 		* @param hHandle - описатель.
 		*/
-		WNAME void changeHandle(
+		void changeHandle(
 			handle::CHandle hHandle);
 	//==========================================================================
 		/**
 		* закрыть описатель.
 		*/
-		WNAME void closeHandle() noexcept;
+		void closeHandle() noexcept;
 	//==========================================================================
 		/**
 		* старт асинхронного чтения.
@@ -57,7 +57,7 @@ namespace io
 		* @param offset - офсет относительно начала.
 		* @return - код ошибки.
 		*/
-		WNAME std::error_code startAsyncRead(
+		std::error_code startAsyncRead(
 			const PBYTE bufferRead,
 			const DWORD dwBufferSize,
 			const UINT64 offset = 0);
@@ -70,7 +70,7 @@ namespace io
 		* @param offset - офсет относительно начала.
 		* @return - код ошибки.
 		*/
-		WNAME std::error_code startRead(
+		std::error_code startRead(
 			const PBYTE bufferRead,
 			const DWORD dwBufferSize,
 			const PDWORD pdwReturnSize,
@@ -83,7 +83,7 @@ namespace io
 		* @param offset - офсет относительно начала.
 		* @return - код ошибки.
 		*/
-		WNAME std::error_code startAsyncWrite(
+		std::error_code startAsyncWrite(
 			const PBYTE bufferWrite,
 			const DWORD dwBufferSize,
 			const UINT64 offset = 0);
@@ -96,7 +96,7 @@ namespace io
 		* @param offset - офсет относительно начала.
 		* @return - код ошибки.
 		*/
-		WNAME std::error_code startWrite(
+		std::error_code startWrite(
 			const PBYTE bufferWrite,
 			const DWORD dwBufferSize,
 			const PDWORD pdwReturnSize,
@@ -106,17 +106,19 @@ namespace io
 		* получить описатель.
 		* @return - описатель.
 		*/
-		WNAME HANDLE getHandle() noexcept;
+		HANDLE getHandle() noexcept;
 	//==========================================================================
 		/**
 		* закончить работу и дождаться всех асинхронных операций.
+		* @param bIsWait - признак ожидания.
 		*/
-		WNAME void release() noexcept override;
+		void release(
+			const bool bIsWait) noexcept override;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME ~CAsyncIo();
+		~CAsyncIo();
 	//==========================================================================
 		CAsyncIo(const CAsyncIo&) = delete;
 		CAsyncIo(CAsyncIo&&) = delete;
@@ -134,7 +136,7 @@ namespace io
 		* @param dwReturnSize - количество прочитанных байт.
 		* @param ec - код ошибки завершения.
 		*/
-		WNAME virtual void asyncReadComplitionHandler(
+		virtual void asyncReadComplitionHandler(
 			const PBYTE bufferRead,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept;
@@ -145,7 +147,7 @@ namespace io
 		* @param dwReturnSize - количество записанных байт.
 		* @param ec - код ошибки завершения.
 		*/
-		WNAME virtual void asyncWriteComplitionHandler(
+		virtual void asyncWriteComplitionHandler(
 			const PBYTE bufferWrite,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept;
@@ -154,21 +156,21 @@ namespace io
 		* обработчик события завершения асинхронного чтения.
 		* @param pAsyncOperation - асинхронная операция.
 		*/
-		WNAME static void asyncReadIocpHandler(
+		static void asyncReadIocpHandler(
 			iocp::CAsyncOperation* const pAsyncOperation) noexcept;
 	//==========================================================================
 		/**
 		* обработчик события завершения асинхронной записи.
 		* @param pAsyncOperation - асинхронная операция.
 		*/
-		WNAME static void asyncWriteIocpHandler(
+		static void asyncWriteIocpHandler(
 			iocp::CAsyncOperation* const pAsyncOperation) noexcept;
 	//==========================================================================
 		/**
 		* обработчик события завершения асинхронной операции.
 		* @param pAsyncOperation - асинхронная операция.
 		*/
-		WNAME static void asyncIocpHandler(
+		static void asyncIocpHandler(
 			iocp::CAsyncOperation* const pAsyncOperation) noexcept;
 	//==========================================================================
 	#pragma endregion

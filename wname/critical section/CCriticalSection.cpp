@@ -1,33 +1,33 @@
 #include "../stdafx.h"
 
-using CCriticalSectionPrefix = wname::cs::CCriticalSection;
+using wname::cs::CCriticalSection;
 
 //==============================================================================
-CCriticalSectionPrefix::CCriticalSection() noexcept
+CCriticalSection::CCriticalSection() noexcept
 {
 	InitializeCriticalSection(this);
 }
 //==============================================================================
 _Acquires_lock_(*this)
-void CCriticalSectionPrefix::lock() noexcept
+void CCriticalSection::lock() noexcept
 {
 	EnterCriticalSection(this);
 }
 //==============================================================================
 _Acquires_lock_(*this)
 _Success_(return != false)
-bool CCriticalSectionPrefix::tryLock() noexcept
+bool CCriticalSection::tryLock() noexcept
 {
 	return TryEnterCriticalSection(this);
 }
 //==============================================================================
 _Releases_lock_(*this)
-void CCriticalSectionPrefix::unlock() noexcept
+void CCriticalSection::unLock() noexcept
 {
 	LeaveCriticalSection(this);
 }
 //==============================================================================
-CCriticalSectionPrefix::~CCriticalSection()
+CCriticalSection::~CCriticalSection()
 {
 	DeleteCriticalSection(this);
 }

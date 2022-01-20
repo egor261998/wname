@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace handle
 {
 	/** реализация описателя в классе */
-	class CHandle
+	class WNAME CHandle
 	{
 	#pragma region Public_Method
 	public:
@@ -12,60 +12,60 @@ namespace handle
 		/**
 		* конструктор по умолчанию.
 		*/
-		WNAME CHandle() noexcept = default;
+		CHandle() noexcept = default;
 	//==========================================================================
 		/**
 		* конструктор из описателя.
 		* @param hObject - новый описатель.
 		*/
-		WNAME CHandle(
+		CHandle(
 			const HANDLE hObject);
 	//==========================================================================
 		/**
 		* конструктор копирования.
 		* @param handle - описатель копирования.
 		*/
-		WNAME CHandle(
+		CHandle(
 			const CHandle& handle) noexcept;
 	//==========================================================================
 		/**
 		* конструктор перемещения.
 		* @param handle - описатель перемещения.
 		*/
-		WNAME CHandle(
+		CHandle(
 			CHandle&& handle) noexcept;
 	//==========================================================================
 		/**
 		* проверить валидность.
 		* @return - результат проверки.
 		*/
-		WNAME bool isValid() const noexcept;
+		bool isValid() const noexcept;
 	//==========================================================================
 		/**
 		* проверить валидность.
 		* @param hObject - описатель.
 		* @return - результат проверки.
 		*/
-		WNAME static bool isValid(
+		static bool isValid(
 			const HANDLE hObject) noexcept;
 	//==========================================================================
 		/**
 		* получить описатель.
 		* @return - описатель.
 		*/
-		WNAME HANDLE getHandle() const noexcept;
+		HANDLE getHandle() const noexcept;
 	//==========================================================================
 		/**
 		* закрыть описатель.
 		*/
-		WNAME void close() noexcept;
+		void close() noexcept;
 	//==========================================================================
 		/**
 		* оператор присвоения описателя.
 		* @param hObject - новый описатель.
 		* @return - текущий объект.
 		*/
-		WNAME virtual CHandle& operator=(
+		virtual CHandle& operator=(
 			const HANDLE hObject);
 	//==========================================================================
 		/**
@@ -73,7 +73,7 @@ namespace handle
 		* @param handle - копируемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME virtual CHandle& operator=(
+		virtual CHandle& operator=(
 			const CHandle& handle) noexcept;
 	//==========================================================================
 		/**
@@ -81,19 +81,19 @@ namespace handle
 		* @param handle - перемещаемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME virtual CHandle& operator=(
+		virtual CHandle& operator=(
 			CHandle&& handle) noexcept;
 	//==========================================================================
 		/**
 		* оператор получения описателя.
 		* @return - описатель.
 		*/
-		WNAME operator HANDLE() const noexcept;
+		operator HANDLE() const noexcept;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME virtual ~CHandle();
+		virtual ~CHandle();
 	//==========================================================================
 	#pragma endregion
 

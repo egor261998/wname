@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace logger
 {
 	/** интерфейс логирования */
-	class ILogger
+	class WNAME ILogger
 	{
 	#pragma region Public_Method
 	public:
@@ -12,7 +12,7 @@ namespace logger
 		/**
 		* конструктор по умолчанию.
 		*/
-		WNAME ILogger() noexcept = default;
+		ILogger() noexcept = default;
 	//==========================================================================
 		/*
 		* лог сообщения.
@@ -21,7 +21,7 @@ namespace logger
 		* @param ec - код ошибки.
 		* @param szMessageFunction - функция из которой вызвалось сообщение.
 		*/
-		WNAME void log(
+		void log(
 			const EMessageType eMessageType,
 			const std::exception& ex,
 			const std::error_code ec = std::error_code(),
@@ -34,7 +34,7 @@ namespace logger
 		* @param ec - код ошибки.
 		* @param szMessageFunction - функция из которой вызвалось сообщение.
 		*/
-		WNAME void log(
+		void log(
 			const EMessageType eMessageType,
 			const char* const szMessage,
 			const std::error_code ec = std::error_code(),
@@ -47,7 +47,7 @@ namespace logger
 		* @param ec - код ошибки.
 		* @param szMessageFunction - функция из которой вызвалось сообщение.
 		*/
-		WNAME void log(
+		void log(
 			const EMessageType eMessageType,
 			const std::string strMessage,
 			const std::error_code ec = std::error_code(),
@@ -60,7 +60,7 @@ namespace logger
 		* @param ec - код ошибки.
 		* @param szMessageFunction - функция из которой вызвалось сообщение.
 		*/
-		WNAME void log(
+		void log(
 			const EMessageType eMessageType,
 			const wchar_t* const wszMessage,
 			const std::error_code ec = std::error_code(),
@@ -73,7 +73,7 @@ namespace logger
 		* @param ec - код ошибки.
 		* @param szMessageFunction - функция из которой вызвалось сообщение.
 		*/
-		WNAME void log(
+		void log(
 			const EMessageType eMessageType,
 			const std::wstring wStrMessage,
 			const std::error_code ec = std::error_code(),
@@ -82,7 +82,7 @@ namespace logger
 		/**
 		* деструктор.
 		*/
-		WNAME virtual ~ILogger() = default;
+		virtual ~ILogger() = default;
 	//==========================================================================
 		ILogger(const ILogger&) = delete;
 		ILogger(ILogger&&) = delete;
@@ -91,8 +91,8 @@ namespace logger
 	//==========================================================================
 	#pragma endregion
 
-	#pragma region Private_Method
-	private:
+	#pragma region Protected_Method
+	protected:
 	//==========================================================================
 		/*
 		* сборка сообщения.
@@ -102,7 +102,7 @@ namespace logger
 		* @param wStrFunction - функция из которой вызвалось сообщение.
 		* @return - логируемое сообщение.
 		*/
-		WNAME virtual std::wstring assembleMessage(
+		virtual std::wstring assembleMessage(
 			const EMessageType eMessageType,
 			const std::wstring& wStrMessage,
 			const std::error_code& ec,
@@ -112,7 +112,7 @@ namespace logger
 		* логировать сообщение.
 		* @param wStr - логируемое сообщение.
 		*/
-		WNAME virtual void logWrite(
+		virtual void logWrite(
 			const std::wstring& wStr) const = 0;
 	//==========================================================================
 	#pragma endregion
@@ -120,7 +120,7 @@ namespace logger
 	#pragma region Public_Data
 	public:
 	//==========================================================================
-		static std::atomic_long _uRepeatLog;
+		inline static std::atomic_size_t _nRepeatLog = 3;
 	//==========================================================================
 	#pragma endregion
 	};

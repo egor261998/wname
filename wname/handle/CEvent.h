@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace handle
 {
 	/** реализация события в классе */
-	class CEvent final : public CHandle
+	class WNAME CEvent final : public CHandle
 	{
 	#pragma region Public_Method
 	public:
@@ -12,30 +12,37 @@ namespace handle
 		/**
 		* конструктор по умолчанию.
 		*/
-		WNAME CEvent() noexcept(false);
+		CEvent() noexcept(false);
 	//==========================================================================
 		/**
 		* конструктор копирования.
 		* @param handle - описатель копирования.
 		*/
-		WNAME CEvent(
+		CEvent(
 			const CEvent& handle) noexcept;
 	//==========================================================================
 		/**
 		* конструктор перемещения.
 		* @param handle - описатель перемещения.
 		*/
-		WNAME CEvent(
+		CEvent(
 			CEvent&& handle) noexcept;
 	//==========================================================================
 		/**
 		* дать уведомление.
 		* @return - код ошибки.
 		*/
-		WNAME std::error_code notify() const noexcept;
+		std::error_code notify() const noexcept;
 	//==========================================================================
+		/**
+		* ожидание уведомлений для нескольких событий.
+		* @param bWaitAll - ожидать всех.
+		* @param dwMilliseconds - время ожидания уведомления.
+		* @param args - события.
+		* @return - код ошибки.
+		*/
 		template<class... Args>
-		WNAME static std::error_code notify(
+		static std::error_code wait(
 			const bool bWaitAll,
 			const DWORD dwMilliseconds,
 			Args&... args) 
@@ -63,21 +70,21 @@ namespace handle
 		* @param dwMilliseconds - время ожидания уведомления.
 		* @return - код ошибки.
 		*/
-		WNAME std::error_code wait(
+		std::error_code wait(
 			const DWORD dwMilliseconds = INFINITE) const noexcept;
 	//==========================================================================
 		/**
 		* отменить уведомление.
 		* @return - код ошибки.
 		*/
-		WNAME std::error_code cancel() const noexcept;
+		std::error_code cancel() const noexcept;
 	//==========================================================================
 		/**
 		* оператор копирования описателя.
 		* @param handle - копируемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME CEvent& operator=(
+		CEvent& operator=(
 			const CEvent& handle) noexcept;
 	//==========================================================================
 		/**
@@ -85,13 +92,13 @@ namespace handle
 		* @param handle - перемещаемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME CEvent& operator=(
+		CEvent& operator=(
 			CEvent&& handle) noexcept;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME ~CEvent();
+		~CEvent();
 	//==========================================================================
 	#pragma endregion
 	};

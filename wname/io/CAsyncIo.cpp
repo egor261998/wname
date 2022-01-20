@@ -1,11 +1,11 @@
 #include "../stdafx.h"
 
-using CAsyncIoPrefix = wname::io::CAsyncIo;
+using wname::io::CAsyncIo;
 
 //==============================================================================
-CAsyncIoPrefix::CAsyncIo(
-	const std::shared_ptr<iocp::CIocp>& pIocp)
-	:_pIocp(pIocp)
+CAsyncIo::CAsyncIo(
+	const std::shared_ptr<iocp::CIocp>& pIocp) :
+	_pIocp(pIocp)
 {
 	if (_pIocp == nullptr)
 	{
@@ -13,7 +13,7 @@ CAsyncIoPrefix::CAsyncIo(
 	}
 }
 //==============================================================================
-void CAsyncIoPrefix::bindHandle(
+void CAsyncIo::bindHandle(
 	handle::CHandle hHandle)
 {
 	try
@@ -30,14 +30,14 @@ void CAsyncIoPrefix::bindHandle(
 	}
 }
 //==============================================================================
-bool CAsyncIoPrefix::isBindHandle() noexcept
+bool CAsyncIo::isBindHandle() noexcept
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
 
 	return _hAsyncHandle.isValid();
 }
 //==============================================================================
-void CAsyncIoPrefix::changeHandle(
+void CAsyncIo::changeHandle(
 	handle::CHandle hHandle)
 {
 	try
@@ -52,7 +52,7 @@ void CAsyncIoPrefix::changeHandle(
 	}
 }
 //==============================================================================
-void CAsyncIoPrefix::closeHandle() noexcept
+void CAsyncIo::closeHandle() noexcept
 {
 
 	cs::CCriticalSectionScoped lock(_csCounter);
@@ -65,7 +65,7 @@ void CAsyncIoPrefix::closeHandle() noexcept
 	}
 }
 //==============================================================================
-std::error_code CAsyncIoPrefix::startAsyncRead(
+std::error_code CAsyncIo::startAsyncRead(
 	const PBYTE bufferRead,
 	const DWORD dwBufferSize,
 	const UINT64 offset)
@@ -110,7 +110,7 @@ std::error_code CAsyncIoPrefix::startAsyncRead(
 	}
 }
 //==============================================================================
-std::error_code CAsyncIoPrefix::startRead(
+std::error_code CAsyncIo::startRead(
 	const PBYTE bufferRead,
 	const DWORD dwBufferSize,
 	const PDWORD pdwReturnSize,
@@ -166,7 +166,7 @@ std::error_code CAsyncIoPrefix::startRead(
 	}
 }
 //==============================================================================
-std::error_code CAsyncIoPrefix::startAsyncWrite(
+std::error_code CAsyncIo::startAsyncWrite(
 	const PBYTE bufferWrite,
 	const DWORD dwBufferSize,
 	const UINT64 offset)
@@ -211,7 +211,7 @@ std::error_code CAsyncIoPrefix::startAsyncWrite(
 	}
 }
 //==============================================================================
-std::error_code CAsyncIoPrefix::startWrite(
+std::error_code CAsyncIo::startWrite(
 	const PBYTE bufferWrite,
 	const DWORD dwBufferSize,
 	const PDWORD pdwReturnSize,
@@ -267,14 +267,14 @@ std::error_code CAsyncIoPrefix::startWrite(
 	}
 }
 //==============================================================================
-HANDLE CAsyncIoPrefix::getHandle() noexcept
+HANDLE CAsyncIo::getHandle() noexcept
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
 
 	return _hAsyncHandle;
 }
 //==============================================================================
-void CAsyncIoPrefix::asyncReadComplitionHandler(
+void CAsyncIo::asyncReadComplitionHandler(
 	const PBYTE bufferRead,
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
@@ -284,7 +284,7 @@ void CAsyncIoPrefix::asyncReadComplitionHandler(
 	UNREFERENCED_PARAMETER(ec);
 };
 //==============================================================================
-void CAsyncIoPrefix::asyncWriteComplitionHandler(
+void CAsyncIo::asyncWriteComplitionHandler(
 	const PBYTE bufferWrite,
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
@@ -294,13 +294,18 @@ void CAsyncIoPrefix::asyncWriteComplitionHandler(
 	UNREFERENCED_PARAMETER(ec);
 };
 //==============================================================================
-void CAsyncIoPrefix::release() noexcept
+void CAsyncIo::release(
+	const bool bIsWait) noexcept
 {
+	__super::release(false);
 	closeHandle();
-	__super::release();
+	if (bIsWait)
+	{
+		__super::release(bIsWait);
+	}
 }
 //==============================================================================
-void CAsyncIoPrefix::asyncReadIocpHandler(
+void CAsyncIo::asyncReadIocpHandler(
 	iocp::CAsyncOperation* const pAsyncOperation) noexcept
 {
 	/** отсутствует асинхронная операция */
@@ -323,7 +328,7 @@ void CAsyncIoPrefix::asyncReadIocpHandler(
 	_this->endOperation();
 }
 //==============================================================================
-void CAsyncIoPrefix::asyncWriteIocpHandler(
+void CAsyncIo::asyncWriteIocpHandler(
 	iocp::CAsyncOperation* const pAsyncOperation) noexcept
 {
 	/** отсутствует асинхронная операция */
@@ -346,7 +351,7 @@ void CAsyncIoPrefix::asyncWriteIocpHandler(
 	_this->endOperation();
 }
 //==============================================================================
-void CAsyncIoPrefix::asyncIocpHandler(
+void CAsyncIo::asyncIocpHandler(
 	iocp::CAsyncOperation* const pAsyncOperation) noexcept
 {
 	/** отсутствует асинхронная операция */
@@ -379,8 +384,8 @@ void CAsyncIoPrefix::asyncIocpHandler(
 	}
 }
 //==============================================================================
-CAsyncIoPrefix::~CAsyncIo()
+CAsyncIo::~CAsyncIo()
 {
-	release();
+	release(true);
 }
 //==============================================================================

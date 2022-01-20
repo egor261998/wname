@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace misc
 {
 	/** счетчик операций RAII */
-	class CCounterScoped final
+	class WNAME CCounterScoped final
 	{
 	#pragma region Public_Method
 	public:
@@ -12,9 +12,9 @@ namespace misc
 		/**
 		* конструктор по умолчанию.
 		* @param counter - счетчик операций.
-		* @param nCount - количество повешанных ссылок.
+		* @param nCount - количество операций.
 		*/
-		WNAME CCounterScoped(
+		CCounterScoped(
 			CCounter& counter,
 			const size_t nCount = 1) noexcept;
 	//==========================================================================
@@ -22,34 +22,22 @@ namespace misc
 		* успех старта счетчика.
 		* @return - успех старта операции.
 		*/
-		WNAME bool isStartOperation() const noexcept;
+		bool isStartOperation() const noexcept;
 	//==========================================================================
 		/**
 		* освободить без снятия ссылок.
 		*/
-		WNAME void release() noexcept;
+		void release() noexcept;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME ~CCounterScoped();
+		~CCounterScoped();
 	//==========================================================================
 		CCounterScoped(const CCounterScoped&) = delete;
 		CCounterScoped(CCounterScoped&&) = delete;
 		CCounterScoped& operator=(const CCounterScoped&) = delete;
 		CCounterScoped& operator=(CCounterScoped&&) = delete;
-	//==========================================================================
-	#pragma endregion
-
-	#pragma region Private_Method
-	private:
-	//==========================================================================
-		/**
-		* закрыть все операции.
-		* @param bIsEndOpertaion - завершить операции перед закрытием.
-		*/
-		WNAME void closeOperation(
-			const bool bIsEndOpertaion) noexcept;
 	//==========================================================================
 	#pragma endregion
 

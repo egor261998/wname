@@ -3,8 +3,8 @@
 _WNAME_BEGIN
 namespace cs
 {
-	/** блокировка критической секции пока существует объект */
-	class CCriticalSectionScoped final
+	/** блокировка критической RAII */
+	class WNAME CCriticalSectionScoped final
 	{
 	#pragma region Public_Method
 	public:
@@ -14,14 +14,14 @@ namespace cs
 		* @param cs - критическая секция.
 		*/
 		_Acquires_lock_(_cs)
-		WNAME CCriticalSectionScoped(
+		CCriticalSectionScoped(
 			CCriticalSection& cs) noexcept;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
 		_Releases_lock_(_cs)
-		WNAME ~CCriticalSectionScoped();
+		~CCriticalSectionScoped();
 	//==========================================================================
 		CCriticalSectionScoped(const CCriticalSectionScoped&) = delete;
 		CCriticalSectionScoped(CCriticalSectionScoped&&) = delete;

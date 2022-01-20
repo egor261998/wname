@@ -1,11 +1,11 @@
 #include "../../stdafx.h"
 
-using CSocketIoPrefix = wname::network::socket::CSocketIo;
+using wname::network::socket::CSocketIo;
 
 //==============================================================================
-CSocketIoPrefix::CSocketIo(
-	const std::shared_ptr<io::iocp::CIocp>& pIocp)
-	:CAsyncIo(pIocp)
+CSocketIo::CSocketIo(
+	const std::shared_ptr<io::iocp::CIocp>& pIocp) :
+	CAsyncIo(pIocp)
 { 
 	/** инициализация */
 	WSADATA wsaData;
@@ -13,7 +13,7 @@ CSocketIoPrefix::CSocketIo(
 		throw std::runtime_error("Error at WSAStartup: " + std::to_string(er));
 }
 //==============================================================================
-std::error_code CSocketIoPrefix::startAsyncRecv(
+std::error_code CSocketIo::startAsyncRecv(
 	const PBYTE bufferRecv,
 	const DWORD dwBufferSize,
 	DWORD dwFlags)
@@ -59,7 +59,7 @@ std::error_code CSocketIoPrefix::startAsyncRecv(
 	}
 }
 //==============================================================================
-std::error_code CSocketIoPrefix::startRecv(
+std::error_code CSocketIo::startRecv(
 	const PBYTE bufferRecv,
 	const DWORD dwBufferSize,
 	const PDWORD pdwReturnSize,
@@ -118,7 +118,7 @@ std::error_code CSocketIoPrefix::startRecv(
 	}
 }
 //==============================================================================
-std::error_code CSocketIoPrefix::startAsyncSend(
+std::error_code CSocketIo::startAsyncSend(
 	const PBYTE bufferSend,
 	const DWORD dwBufferSize,
 	const DWORD dwFlags)
@@ -164,7 +164,7 @@ std::error_code CSocketIoPrefix::startAsyncSend(
 	}
 }
 //==============================================================================
-std::error_code CSocketIoPrefix::startSend(
+std::error_code CSocketIo::startSend(
 	const PBYTE bufferSend,
 	const DWORD dwBufferSize,
 	const PDWORD pdwReturnSize,
@@ -222,12 +222,13 @@ std::error_code CSocketIoPrefix::startSend(
 	}
 }
 //==============================================================================
-void CSocketIoPrefix::release() noexcept
+void CSocketIo::release(
+	const bool bIsWait) noexcept
 {
-	__super::release();
+	__super::release(bIsWait);
 }
 //==============================================================================
-void CSocketIoPrefix::asyncReadComplitionHandler(
+void CSocketIo::asyncReadComplitionHandler(
 	const PBYTE bufferRead,
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
@@ -241,7 +242,7 @@ void CSocketIoPrefix::asyncReadComplitionHandler(
 	endOperation();
 }
 //==============================================================================
-void CSocketIoPrefix::asyncWriteComplitionHandler(
+void CSocketIo::asyncWriteComplitionHandler(
 	const PBYTE bufferWrite,
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
@@ -255,7 +256,7 @@ void CSocketIoPrefix::asyncWriteComplitionHandler(
 	endOperation();
 }
 //==============================================================================
-void CSocketIoPrefix::asyncRecvComplitionHandler(
+void CSocketIo::asyncRecvComplitionHandler(
 	const PBYTE bufferRecv,
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
@@ -265,7 +266,7 @@ void CSocketIoPrefix::asyncRecvComplitionHandler(
 	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
-void CSocketIoPrefix::asyncSendComplitionHandler(
+void CSocketIo::asyncSendComplitionHandler(
 	const PBYTE bufferSend,
 	const DWORD dwReturnSize,
 	const std::error_code ec) noexcept
@@ -275,9 +276,9 @@ void CSocketIoPrefix::asyncSendComplitionHandler(
 	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
-CSocketIoPrefix::~CSocketIo()
+CSocketIo::~CSocketIo()
 {
-	release();
+	release(true);
 	WSACleanup();
 }
 //==============================================================================

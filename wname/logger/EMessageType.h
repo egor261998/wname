@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace logger
 {
 	/** типы сообщения */
-	enum class EMessageType : int
+	enum class EMessageType : UINT8
 	{
 		trace,
 		warning,

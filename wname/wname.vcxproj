@@ -341,6 +341,7 @@
     <ClInclude Include="network\CTcpClient.h" />
     <ClInclude Include="network\CTcpConnectedClient.h" />
     <ClInclude Include="network\CTcpServer.h" />
+    <ClInclude Include="network\ITcpClient.h" />
     <ClInclude Include="network\socket\CSocketAdress.h" />
     <ClInclude Include="network\socket\CSocketHandle.h" />
     <ClInclude Include="network\socket\CSocketIo.h" />
@@ -370,6 +371,7 @@
     <ClCompile Include="network\CTcpClient.cpp" />
     <ClCompile Include="network\CTcpConnectedClient.cpp" />
     <ClCompile Include="network\CTcpServer.cpp" />
+    <ClCompile Include="network\ITcpClient.cpp" />
     <ClCompile Include="network\socket\CSocketAdress.cpp" />
     <ClCompile Include="network\socket\CSocketHandle.cpp" />
     <ClCompile Include="network\socket\CSocketIo.cpp" />

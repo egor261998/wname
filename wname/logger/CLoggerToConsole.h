@@ -3,7 +3,7 @@
 _WNAME_BEGIN
 namespace logger {
 	/** лог в консоль */
-	class CLoggerToConsole final : public ILogger
+	class WNAME CLoggerToConsole final : public ILogger
 	{
 	#pragma region Public_Method
 	public:
@@ -12,31 +12,31 @@ namespace logger {
 		* конструктор.
 		* @param logPath - путь до файла.
 		*/
-		WNAME CLoggerToConsole() noexcept;
+		CLoggerToConsole() noexcept = default;
+	//==========================================================================
+		/**
+		* деструктор.
+		*/
+		~CLoggerToConsole() = default;
 	//==========================================================================
 		CLoggerToConsole(const CLoggerToConsole&) = delete;
 		CLoggerToConsole(CLoggerToConsole&&) = delete;
 		CLoggerToConsole& operator=(const CLoggerToConsole&) = delete;
 		CLoggerToConsole& operator=(CLoggerToConsole&&) = delete;
 	//==========================================================================
-		/**
-		* деструктор.
-		*/
-		WNAME ~CLoggerToConsole() = default;
-	//==========================================================================
 	#pragma endregion
 
-	#pragma region Private_Method
-	private:
+	#pragma region Protected_Method
+	protected:
 	//==========================================================================
 		/**
 		* логировать сообщение.
 		* @param wStr - логируемое сообщение.
 		*/
-		WNAME void logWrite(
+		void logWrite(
 			const std::wstring& wStr) const noexcept override;
 	//==========================================================================
-		#pragma endregion
+	#pragma endregion
 	};
 }
 _WNAME_END

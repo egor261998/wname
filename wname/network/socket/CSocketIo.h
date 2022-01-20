@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace network::socket
 {
 	/** операции ввода/вывода с сокетом */
-	class CSocketIo : protected io::CAsyncIo
+	class WNAME CSocketIo : protected io::CAsyncIo
 	{
 	#pragma region Public_Method
 	public:
@@ -13,7 +13,7 @@ namespace network::socket
 		* конструктор по умолчанию.
 		* @param pIocp - механизм ввода/вывода.
 		*/
-		WNAME CSocketIo(
+		CSocketIo(
 			const std::shared_ptr<io::iocp::CIocp>& pIocp);
 	//==========================================================================
 		/**
@@ -23,7 +23,7 @@ namespace network::socket
 		* @param dwFlags - флаги.
 		* @return - код ошибки.
 		*/
-		WNAME virtual std::error_code startAsyncRecv(
+		virtual std::error_code startAsyncRecv(
 			const PBYTE bufferRecv,
 			const DWORD dwBufferSize,
 			const DWORD dwFlags = 0u);
@@ -36,7 +36,7 @@ namespace network::socket
 		* @param dwFlags - флаги.
 		* @return - код ошибки.
 		*/
-		WNAME virtual std::error_code startRecv(
+		virtual std::error_code startRecv(
 			const PBYTE bufferRecv,
 			const DWORD dwBufferSize,
 			const PDWORD pdwReturnSize,
@@ -49,7 +49,7 @@ namespace network::socket
 		* @param dwFlags - флаги.
 		* @return - код ошибки.
 		*/
-		WNAME virtual std::error_code startAsyncSend(
+		virtual std::error_code startAsyncSend(
 			const PBYTE bufferSend,
 			const DWORD dwBufferSize,
 			const DWORD dwFlags = 0u);
@@ -62,7 +62,7 @@ namespace network::socket
 		* @param dwFlags - флаги.
 		* @return - код ошибки.
 		*/
-		WNAME virtual std::error_code startSend(
+		virtual std::error_code startSend(
 			const PBYTE bufferSend,
 			const DWORD dwBufferSize,
 			const PDWORD pdwReturnSize,
@@ -70,13 +70,15 @@ namespace network::socket
 	//==========================================================================
 		/**
 		* закончить работу и дождаться всех асинхронных операций.
+		* @param bIsWait - признак ожидания.
 		*/
-		WNAME void release() noexcept override;
+		void release(
+			const bool bIsWait) noexcept override;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME ~CSocketIo();
+		~CSocketIo();
 	//==========================================================================
 		CSocketIo(const CSocketIo&) = delete;
 		CSocketIo(CSocketIo&&) = delete;
@@ -94,7 +96,7 @@ namespace network::socket
 		* @param dwReturnSize - количество прочитанных байт.
 		* @param ec - код ошибки завершения.
 		*/
-		WNAME virtual void asyncRecvComplitionHandler(
+		virtual void asyncRecvComplitionHandler(
 			const PBYTE bufferRecv,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept;
@@ -105,7 +107,7 @@ namespace network::socket
 		* @param dwReturnSize - количество записанных байт.
 		* @param ec - код ошибки завершения.
 		*/
-		WNAME virtual void asyncSendComplitionHandler(
+		virtual void asyncSendComplitionHandler(
 			const PBYTE bufferSend,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept;
@@ -121,7 +123,7 @@ namespace network::socket
 		* @param dwReturnSize - количество прочитанных байт.
 		* @param ec - код ошибки завершения.
 		*/
-		WNAME void asyncReadComplitionHandler(
+		void asyncReadComplitionHandler(
 			const PBYTE bufferRead,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept override;
@@ -132,7 +134,7 @@ namespace network::socket
 		* @param dwReturnSize - количество записанных байт.
 		* @param ec - код ошибки завершения.
 		*/
-		WNAME void asyncWriteComplitionHandler(
+		void asyncWriteComplitionHandler(
 			const PBYTE bufferWrite,
 			const DWORD dwReturnSize,
 			const std::error_code ec) noexcept override;

@@ -1,21 +1,16 @@
 #include "../stdafx.h"
 
-using CCounterPrefix = wname::misc::CCounter;
+using wname::misc::CCounter;
 
 //==============================================================================
-CCounterPrefix::CCounter() noexcept(false)
-{
-	
-}
-//==============================================================================
-bool CCounterPrefix::isInitialize() noexcept
+bool CCounter::isInitialize() noexcept
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
 
 	return _isCounterInitialize;
 }
 //==============================================================================
-bool CCounterPrefix::startOperation(
+bool CCounter::startOperation(
 	const size_t nCount) noexcept
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
@@ -26,7 +21,7 @@ bool CCounterPrefix::startOperation(
 	return _isCounterInitialize;
 }
 //==============================================================================
-bool CCounterPrefix::endOperation(
+bool CCounter::endOperation(
 	const size_t nCount) noexcept
 {
 	bool bResultFree = false;
@@ -55,7 +50,7 @@ bool CCounterPrefix::endOperation(
 	return bResultFree;
 }
 //==============================================================================
-void CCounterPrefix::processingOperation(
+void CCounter::processingOperation(
 	bool& bResultFree,
 	bool& isDelete) noexcept
 {
@@ -87,24 +82,19 @@ void CCounterPrefix::processingOperation(
 	}
 
 	/** завершение последней асинхронной операции */
-	bResultFree =
-		_nCounterCount == 0 && !_isCounterInitialize;
+	bResultFree = _nCounterCount == 0 && !_isCounterInitialize;
 	isDelete = _isDeleteAfterEndOperation && !checkOperation();
 }
 //==============================================================================
-bool CCounterPrefix::checkOperation(
+bool CCounter::checkOperation(
 	const size_t nCount) noexcept
 {
-	bool isLast = false;
-	{
-		cs::CCriticalSectionScoped lock(_csCounter);
-		isLast = _nCounterCount > nCount;
-	}
+	cs::CCriticalSectionScoped lock(_csCounter);
 
-	return isLast;
+	return _nCounterCount > nCount;
 }
 //==============================================================================
-void CCounterPrefix::waitOperation(
+void CCounter::waitOperation(
 	const size_t nCount)
 {
 	handle::CEvent ev;
@@ -138,7 +128,8 @@ void CCounterPrefix::waitOperation(
 	ev.wait();
 }
 //==============================================================================
-void CCounterPrefix::release() noexcept
+void CCounter::release(
+	const bool bIsWait) noexcept
 {
 	bool isNeedWait = false;
 
@@ -150,11 +141,11 @@ void CCounterPrefix::release() noexcept
 		isNeedWait = _nCounterCount ? true : false;
 	}
 
-	if (isNeedWait)
+	if (bIsWait && isNeedWait)
 		_eventCounterFree.wait();
 }
 //==============================================================================
-bool CCounterPrefix::deleteAfterEndOperation() noexcept
+bool CCounter::deleteAfterEndOperation() noexcept
 {
 	bool bResultFree = false;
 	bool isDelete = false;
@@ -179,8 +170,8 @@ bool CCounterPrefix::deleteAfterEndOperation() noexcept
 	return isDelete;
 }
 //==============================================================================
-CCounterPrefix::~CCounter()
+CCounter::~CCounter()
 {
-	release();
+	release(true);
 }
 //==============================================================================

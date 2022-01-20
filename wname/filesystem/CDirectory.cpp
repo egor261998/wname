@@ -1,13 +1,13 @@
 #include "../stdafx.h"
 
-using CDirectoryPrefix = wname::filesystem::CDirectory;
+using wname::filesystem::CDirectory;
 
 //==============================================================================
-CDirectoryPrefix::CDirectory(
+CDirectory::CDirectory(
 	const std::filesystem::path directoryPath,
-	const std::shared_ptr<io::iocp::CIocp>& pIocp) 
-: CAsyncIo(pIocp),
-_pParent(nullptr)
+	const std::shared_ptr<io::iocp::CIocp>& pIocp) : 
+	CAsyncIo(pIocp),
+	_pParent(nullptr)
 {
 	try
 	{
@@ -20,12 +20,12 @@ _pParent(nullptr)
 	}
 }
 //==============================================================================
-CDirectoryPrefix::CDirectory(
+CDirectory::CDirectory(
 	const std::filesystem::path directoryPath,
 	const std::shared_ptr<io::iocp::CIocp>& pIocp,
-	CDirectory* const pParent) 
-: CAsyncIo(pIocp),
-_pParent(pParent)
+	CDirectory* const pParent) : 
+	CAsyncIo(pIocp),
+	_pParent(pParent)
 {
 	try
 	{
@@ -41,20 +41,17 @@ _pParent(pParent)
 	}
 }
 //==============================================================================
-std::error_code CDirectoryPrefix::createDirectory(
+std::error_code CDirectory::createDirectory(
 	const bool isSubOpenDirectory,
 	const bool isNotify,
 	const DWORD dwDesiredAccess,
 	const DWORD dwShareMode,
 	const DWORD dwCreationDisposition,
-	DWORD dwFlagsAndAttributes)
+	const DWORD dwFlagsAndAttributes)
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
 		return std::error_code(ERROR_OPERATION_ABORTED, std::system_category());
-
-	dwFlagsAndAttributes |= FILE_FLAG_BACKUP_SEMANTICS;
-	dwFlagsAndAttributes |= FILE_FLAG_OVERLAPPED;
 
 	cs::CCriticalSectionScoped lock(_csCounter);
 
@@ -95,7 +92,7 @@ std::error_code CDirectoryPrefix::createDirectory(
 			dwShareMode,
 			NULL,
 			dwCreationDisposition,
-			dwFlagsAndAttributes,
+			dwFlagsAndAttributes | FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
 			NULL);
 
 		if (!hHandle.isValid())
@@ -130,19 +127,27 @@ std::error_code CDirectoryPrefix::createDirectory(
 	}
 }
 //==============================================================================
-std::filesystem::path CDirectoryPrefix::getPath()
+std::filesystem::path CDirectory::getPath()
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
 
-	return _directoryPath;
+	try
+	{
+		return _directoryPath;
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(logger::EMessageType::critical, ex);
+		throw;
+	}
 }
 //==============================================================================
-bool CDirectoryPrefix::isOpen() noexcept
+bool CDirectory::isOpen() noexcept
 {
 	return isBindHandle();
 }
 //==============================================================================
-std::list<std::filesystem::path>CDirectoryPrefix::getFileList(
+std::list<std::filesystem::path> CDirectory::getFileList(
 	const bool bSubFile,
 	const std::filesystem::path proximatePath)
 {
@@ -179,7 +184,7 @@ std::list<std::filesystem::path>CDirectoryPrefix::getFileList(
 	}
 }
 //==============================================================================
-std::error_code CDirectoryPrefix::deleteDirectory(
+std::error_code CDirectory::deleteDirectory(
 	const std::filesystem::path directoryPath) noexcept
 {
 	const auto bResult = RemoveDirectory(directoryPath.c_str());
@@ -189,14 +194,22 @@ std::error_code CDirectoryPrefix::deleteDirectory(
 		std::system_category());
 }
 //==============================================================================
-std::error_code CDirectoryPrefix::deleteDirectory()
+std::error_code CDirectory::deleteDirectory()
 {
-	return deleteDirectory(getPath());
+	try
+	{
+		return deleteDirectory(getPath());
+	}
+	catch (const std::exception& ex)
+	{
+		_pIocp->log(logger::EMessageType::critical, ex);
+		throw;
+	}
 }
 //==============================================================================
-void CDirectoryPrefix::close() noexcept
+void CDirectory::close() noexcept
 {
-	release();
+	release(true);
 
 	cs::CCriticalSectionScoped lock(_csCounter);
 
@@ -204,7 +217,7 @@ void CDirectoryPrefix::close() noexcept
 	_listFile.clear();
 }
 //==============================================================================
-std::error_code CDirectoryPrefix::enumDirectory()
+std::error_code CDirectory::enumDirectory()
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
@@ -278,7 +291,7 @@ std::error_code CDirectoryPrefix::enumDirectory()
 	}
 }
 //==============================================================================
-void CDirectoryPrefix::addFileToDirectory(
+void CDirectory::addFileToDirectory(
 	const std::filesystem::path& filePath)
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
@@ -319,7 +332,7 @@ void CDirectoryPrefix::addFileToDirectory(
 	}
 }
 //==============================================================================
-void CDirectoryPrefix::addDirectoryToDirectory(
+void CDirectory::addDirectoryToDirectory(
 	const std::filesystem::path& directoryPath)
 {
 	cs::CCriticalSectionScoped lock(_csCounter);
@@ -381,7 +394,7 @@ void CDirectoryPrefix::addDirectoryToDirectory(
 	}
 }
 //==============================================================================
-void CDirectoryPrefix::removeFileFromDirectory(
+void CDirectory::removeFileFromDirectory(
 	const UINT64 uId) noexcept
 {
 	#pragma warning(disable: 26472)
@@ -391,7 +404,7 @@ void CDirectoryPrefix::removeFileFromDirectory(
 	changeSubFileCount(-count);
 }
 //==============================================================================
-void CDirectoryPrefix::removeDirectoryFromDirectory(
+void CDirectory::removeDirectoryFromDirectory(
 	const UINT64 uId) noexcept
 {
 	#pragma warning(disable: 26472)
@@ -401,7 +414,7 @@ void CDirectoryPrefix::removeDirectoryFromDirectory(
 	changeSubDirectoryCount(-count);
 }
 //==============================================================================
-void CDirectoryPrefix::changeSubFileCount(
+void CDirectory::changeSubFileCount(
 	const int countItem) noexcept
 {
 	_nCountSubFile += countItem;
@@ -411,7 +424,7 @@ void CDirectoryPrefix::changeSubFileCount(
 	}
 }
 //==============================================================================
-void CDirectoryPrefix::changeSubDirectoryCount(
+void CDirectory::changeSubDirectoryCount(
 	const int countItem) noexcept
 {
 	_nCountSubDirectory += countItem;
@@ -421,7 +434,7 @@ void CDirectoryPrefix::changeSubDirectoryCount(
 	}
 }
 //==============================================================================
-std::error_code CDirectoryPrefix::startNotify()
+std::error_code CDirectory::startNotify()
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
@@ -476,7 +489,7 @@ std::error_code CDirectoryPrefix::startNotify()
 	return std::error_code();
 }
 //==============================================================================
-void CDirectoryPrefix::notifyCompilteHandler(
+void CDirectory::notifyCompilteHandler(
 	io::iocp::CAsyncOperation* const pAsyncOperation) noexcept
 {
 	#pragma warning (disable: 26446 26493)
@@ -596,7 +609,7 @@ void CDirectoryPrefix::notifyCompilteHandler(
 	_this->endOperation();
 }
 //==============================================================================
-void CDirectoryPrefix::notifyAcceptCompilteHandler(
+void CDirectory::notifyAcceptCompilteHandler(
 	PFILE_NOTIFY_EXTENDED_INFORMATION pNotifyInfo)
 {
 	#pragma warning (disable: 26493 26482 26446)
@@ -681,7 +694,7 @@ void CDirectoryPrefix::notifyAcceptCompilteHandler(
 				{
 					auto pFile = _listFile.at(pNotifyInfo->FileId.QuadPart);
 					{
-						cs::CCriticalSectionScoped lockDirectory(pFile->_csCounter);
+						cs::CCriticalSectionScoped lockFile(pFile->_csCounter);
 						pFile->_filePath = path;
 					}
 					notifyFileCompilteHandler(
@@ -724,8 +737,8 @@ void CDirectoryPrefix::notifyAcceptCompilteHandler(
 		throw;
 	}
 }
-//==========================================================================
-void CDirectoryPrefix::notifyFileCompilteHandler(
+//==============================================================================
+void CDirectory::notifyFileCompilteHandler(
 	const DWORD dwAction,
 	const std::shared_ptr<CFile> pFile,
 	const bool bIsSubItem)
@@ -739,8 +752,8 @@ void CDirectoryPrefix::notifyFileCompilteHandler(
 
 	/** пропускаем */
 }
-//==========================================================================
-void CDirectoryPrefix::notifyDirectoryCompilteHandler(
+//==============================================================================
+void CDirectory::notifyDirectoryCompilteHandler(
 	const DWORD dwAction,
 	const std::shared_ptr<CDirectory> pDirectory,
 	const bool bIsSubItem)
@@ -754,7 +767,8 @@ void CDirectoryPrefix::notifyDirectoryCompilteHandler(
 
 	/** пропускаем */
 }
-bool CDirectoryPrefix::notifyErrorCompilteHandler(
+//==============================================================================
+bool CDirectory::notifyErrorCompilteHandler(
 	const std::error_code ec,
 	const bool bIsSubItem) noexcept
 {
@@ -769,8 +783,8 @@ bool CDirectoryPrefix::notifyErrorCompilteHandler(
 	return false;
 }
 //==============================================================================
-CDirectoryPrefix::~CDirectory()
+CDirectory::~CDirectory()
 {
-	close();
+	release(true);
 }
 //==============================================================================

@@ -1,14 +1,14 @@
 #include "../stdafx.h"
 
-using CTcpServerPrefix = wname::network::CTcpServer;
-using ESocketStatePrefix = wname::network::socket::ESocketState;
+using wname::network::CTcpServer;
+using wname::network::socket::ESocketState;
 
 //==============================================================================
-CTcpServerPrefix::CTcpServer(
+CTcpServer::CTcpServer(
 	const std::string strIp,
 	const WORD wPort,
-	const std::shared_ptr<io::iocp::CIocp>& pIocp)
-:CSocketIo(pIocp)
+	const std::shared_ptr<io::iocp::CIocp>& pIocp) :
+	CSocketIo(pIocp)
 {
 	try
 	{
@@ -60,7 +60,7 @@ CTcpServerPrefix::CTcpServer(
 	}
 }
 //==============================================================================
-std::error_code CTcpServerPrefix::connectServer()
+std::error_code CTcpServer::connectServer()
 {
 	misc::CCounterScoped counter(*this);
 
@@ -73,19 +73,19 @@ std::error_code CTcpServerPrefix::connectServer()
 		/** отдельная область видимости для удобства блокировки */
 		cs::CCriticalSectionScoped lock(_csCounter);
 
-		if (_eSocketState == ESocketStatePrefix::disconnected)
+		if (_eSocketState == ESocketState::disconnected)
 		{
 			/** действуем */
-			_eSocketState = ESocketStatePrefix::connecting;
+			_eSocketState = ESocketState::connecting;
 
 			try
 			{
 				ec = startListen();
-				_eSocketState = ESocketStatePrefix::connected;
+				_eSocketState = ESocketState::connected;
 			}
 			catch (const std::exception& ex)
 			{
-				_eSocketState = ESocketStatePrefix::disconnected;
+				_eSocketState = ESocketState::disconnected;
 				_pIocp->log(logger::EMessageType::critical, ex);
 				throw;
 			}
@@ -102,7 +102,7 @@ std::error_code CTcpServerPrefix::connectServer()
 	return ec;
 }
 //==============================================================================
-void CTcpServerPrefix::disconnectServer(
+void CTcpServer::disconnectServer(
 	const std::error_code ec) noexcept
 {
 	/** счетчик операций для корректного завершения контекста */
@@ -118,9 +118,9 @@ void CTcpServerPrefix::disconnectServer(
 
 		switch (_eSocketState)
 		{
-		case ESocketStatePrefix::disconnected:
+		case ESocketState::disconnected:
 			break;
-		case ESocketStatePrefix::disconnecting:
+		case ESocketState::disconnecting:
 		{
 			if (!_listClients.empty())
 			{
@@ -129,16 +129,16 @@ void CTcpServerPrefix::disconnectServer(
 				break;
 			}
 
-			_eSocketState = ESocketStatePrefix::disconnected;
+			_eSocketState = ESocketState::disconnected;
 			ecDisconnected = _ec;
 			bIsDisconnected = true;
 			break;
 		}
-		case ESocketStatePrefix::connecting:
+		case ESocketState::connecting:
 			break;
-		case ESocketStatePrefix::connected:
+		case ESocketState::connected:
 		{
-			_eSocketState = ESocketStatePrefix::disconnecting;
+			_eSocketState = ESocketState::disconnecting;
 			_ec = ec;
 
 			shutdown(_socket, SD_BOTH);
@@ -175,7 +175,7 @@ void CTcpServerPrefix::disconnectServer(
 	}
 }
 //==============================================================================
-void CTcpServerPrefix::removeClient(
+void CTcpServer::removeClient(
 	CTcpConnectedClient* const pClient) noexcept
 {
 	if (pClient == nullptr)
@@ -201,7 +201,7 @@ void CTcpServerPrefix::removeClient(
 		}
 
 		/** если сервер в стадии отключения, то нужно изменить статус */
-		bIsRepeatDisconnect = _eSocketState == ESocketStatePrefix::disconnecting;
+		bIsRepeatDisconnect = _eSocketState == ESocketState::disconnecting;
 	}
 
 	/** сброс клиента */
@@ -214,7 +214,7 @@ void CTcpServerPrefix::removeClient(
 	}
 }
 //==============================================================================
-CTcpServerPrefix::CTcpConnectedClient* CTcpServerPrefix::addClient()
+CTcpServer::CTcpConnectedClient* CTcpServer::addClient()
 {
 	misc::CCounterScoped counter(*this);
 	if (!counter.isStartOperation())
@@ -222,8 +222,8 @@ CTcpServerPrefix::CTcpConnectedClient* CTcpServerPrefix::addClient()
 
 	cs::CCriticalSectionScoped lock(_csCounter);
 	
-	if (_eSocketState != ESocketStatePrefix::connected &&
-		_eSocketState != ESocketStatePrefix::connecting)
+	if (_eSocketState != ESocketState::connected &&
+		_eSocketState != ESocketState::connecting)
 	{
 		/** сервер не включен , сваливаем */
 		return nullptr;
@@ -253,7 +253,7 @@ CTcpServerPrefix::CTcpConnectedClient* CTcpServerPrefix::addClient()
 	}
 }
 //==============================================================================
-void CTcpServerPrefix::clientAcceptedEventHandler(
+void CTcpServer::clientAcceptedEventHandler(
 	io::iocp::CAsyncOperation* pAsyncOperation) noexcept
 {
 	#pragma warning (disable: 26429)
@@ -318,7 +318,7 @@ void CTcpServerPrefix::clientAcceptedEventHandler(
 	}
 
 	/** клиент подключен */
-	_this->_eSocketState = ESocketStatePrefix::connected;
+	_this->_eSocketState = ESocketState::connected;
 
 	/** передаем управление клиенту */
 	_this->clientConnected(ec);
@@ -332,7 +332,7 @@ void CTcpServerPrefix::clientAcceptedEventHandler(
 	pParent->endOperation();
 }
 //==============================================================================
-std::error_code CTcpServerPrefix::startListen()
+std::error_code CTcpServer::startListen()
 {
 	misc::CCounterScoped counter(*this);
 
@@ -416,7 +416,7 @@ std::error_code CTcpServerPrefix::startListen()
 	}
 }
 //==============================================================================
-std::unique_ptr<CTcpServerPrefix::CTcpConnectedClient> CTcpServerPrefix::createClient()
+std::unique_ptr<CTcpServer::CTcpConnectedClient> CTcpServer::createClient()
 {
 	try
 	{
@@ -430,30 +430,35 @@ std::unique_ptr<CTcpServerPrefix::CTcpConnectedClient> CTcpServerPrefix::createC
 	}
 }
 //==============================================================================
-void CTcpServerPrefix::serverConnected(
+void CTcpServer::serverConnected(
 	const std::error_code ec) noexcept
 {
 	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
-void CTcpServerPrefix::serverDisconnected(
+void CTcpServer::serverDisconnected(
 	const std::error_code ec) noexcept
 {
 	UNREFERENCED_PARAMETER(ec);
 }
 //==============================================================================
-void CTcpServerPrefix::release() noexcept
+void CTcpServer::release(
+	const bool bIsWait) noexcept
 {
+	__super::release(false);
 	/** отключаем */
 	disconnectServer();
 
 	/** ждем завершения всего */
-	__super::release();
+	if(bIsWait)
+	{ 
+		__super::release(bIsWait);
+	}
 }
 //==============================================================================
-CTcpServerPrefix::~CTcpServer()
+CTcpServer::~CTcpServer()
 {
 	/** завершение всего */
-	release();
+	release(true);
 }
 //==============================================================================

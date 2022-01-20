@@ -1,12 +1,12 @@
 #include "../../stdafx.h"
 
 /** объявление через препроцессор, тк класс приватный */
-#define CThreadPoolWorkerPrefix wname::io::iocp::CIocp::CThreadPoolWorker
+using wname::io::iocp::CIocp;
 
 //==============================================================================
-CThreadPoolWorkerPrefix::CThreadPoolWorker(
-	CThreadPool* const pThreadPool)
-	:_pThreadPool(pThreadPool)
+CIocp::CThreadPoolWorker::CThreadPoolWorker(
+	CThreadPool* const pThreadPool)	:
+	_pThreadPool(pThreadPool)
 {
 	if (_pThreadPool == nullptr)
 	{
@@ -29,7 +29,7 @@ CThreadPoolWorkerPrefix::CThreadPoolWorker(
 	}
 }
 //==============================================================================
-void CThreadPoolWorkerPrefix::start(
+void CIocp::CThreadPoolWorker::start(
 	CThreadPool* const pThreadPool)
 {
 	if (pThreadPool == nullptr)
@@ -63,16 +63,17 @@ void CThreadPoolWorkerPrefix::start(
 	}
 }
 //==============================================================================
-void CThreadPoolWorkerPrefix::release() noexcept
+void CIocp::CThreadPoolWorker::release(
+	const bool bIsWait) noexcept
 {
 	/** ждать всех операций нужно тут */
-	__super::release();
+	__super::release(bIsWait);
 }
 //==============================================================================
-CThreadPoolWorkerPrefix::~CThreadPoolWorker()
+CIocp::CThreadPoolWorker::~CThreadPoolWorker()
 {
 	/** ждем завершения */
-	release();
+	release(true);
 
 	_pThreadPool->endOperation();
 }

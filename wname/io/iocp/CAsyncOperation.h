@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace io::iocp
 {
 	/** асинхронная операция механизма ввода/вывода */
-	class CIocp::CAsyncOperation final : protected misc::CInterlockedItem
+	class WNAME CIocp::CAsyncOperation final : protected misc::CInterlockedItem
 	{
 		friend class CIocp;
 		friend class misc::CInterlockedList<CAsyncOperation>;
@@ -30,7 +30,7 @@ namespace io::iocp
 		* @param pCompletionRoutineContext - контекст асинхронной операции.
 		* @param fComplitionRoutine - функция завершения асинхронной операции.
 		*/
-		WNAME CAsyncOperation(
+		CAsyncOperation(
 			CIocp* const pIocp,
 			const PVOID pCompletionRoutineContext = nullptr,
 			const FAsyncCompletion fComplitionRoutine = nullptr);
@@ -38,7 +38,7 @@ namespace io::iocp
 		/**
 		* отмена асинхронной операции.
 		*/
-		WNAME void cancel() noexcept;
+		void cancel() noexcept;
 	//==========================================================================
 		CAsyncOperation(const CAsyncOperation&) = delete;
 		CAsyncOperation(CAsyncOperation&&) = delete;

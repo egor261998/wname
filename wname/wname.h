@@ -20,6 +20,7 @@
 #include <string>
 #include <filesystem>
 #include <unordered_map>
+#include <map>
 #include <cassert>
 #include <thread>
 #include <future>
@@ -71,6 +72,7 @@
 #include "network\socket\CSocketHandle.h"
 #include "network\socket\CSocketAdress.h"
 #include "network\socket\CSocketIo.h"
+#include "network\ITcpClient.h"
 #include "network\CTcpClient.h"
 #include "network\CTcpServer.h"
 #include "network\CTcpConnectedClient.h"

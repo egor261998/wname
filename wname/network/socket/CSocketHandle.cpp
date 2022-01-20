@@ -1,9 +1,9 @@
 #include "../../stdafx.h"
 
-using CSocketHandlePrefix = wname::network::socket::CSocketHandle;
+using wname::network::socket::CSocketHandle;
 
 //==============================================================================
-CSocketHandlePrefix::CSocketHandle(
+CSocketHandle::CSocketHandle(
 	const int type,
 	const int protocol)
 {
@@ -11,46 +11,46 @@ CSocketHandlePrefix::CSocketHandle(
 	*this = ::socket(AF_INET, type, protocol);
 }
 //==============================================================================
-CSocketHandlePrefix::CSocketHandle(
+CSocketHandle::CSocketHandle(
 	const CSocketHandle& socket) noexcept
 {
 	/** выполняем команду через перегрузку оператора копирования */
 	*this = socket;
 }
 //==============================================================================
-CSocketHandlePrefix::CSocketHandle(
+CSocketHandle::CSocketHandle(
 	CSocketHandle&& socket) noexcept
 {
 	/** выполняем команду через перегрузку оператора перемещения */
 	*this = std::move(socket);
 }
 //==============================================================================
-LPFN_ACCEPTEX CSocketHandlePrefix::getAcceptEx() const
+LPFN_ACCEPTEX CSocketHandle::getAcceptEx() const
 {
 	GUID guid = WSAID_ACCEPTEX;
 	return getWSAIoctl<LPFN_ACCEPTEX>(guid);
 }
 //==============================================================================
-LPFN_CONNECTEX CSocketHandlePrefix::getConnectEx() const
+LPFN_CONNECTEX CSocketHandle::getConnectEx() const
 {
 	GUID guid = WSAID_CONNECTEX;
 	return getWSAIoctl<LPFN_CONNECTEX>(guid);
 }
 //==============================================================================
-LPFN_GETACCEPTEXSOCKADDRS CSocketHandlePrefix::getGetAcceptExSockAddrs() const
+LPFN_GETACCEPTEXSOCKADDRS CSocketHandle::getGetAcceptExSockAddrs() const
 {
 	GUID guid = WSAID_GETACCEPTEXSOCKADDRS;
 	return getWSAIoctl<LPFN_GETACCEPTEXSOCKADDRS>(guid);
 }
 //==============================================================================
-LPFN_DISCONNECTEX CSocketHandlePrefix::getDisconnectex() const
+LPFN_DISCONNECTEX CSocketHandle::getDisconnectex() const
 {
 	GUID guid = WSAID_DISCONNECTEX;
 	return getWSAIoctl<LPFN_DISCONNECTEX>(guid);
 }
 //==============================================================================
 template<class T>
-T CSocketHandlePrefix::getWSAIoctl(GUID& guid) const
+T CSocketHandle::getWSAIoctl(GUID& guid) const
 {
 	T p = NULL;
 	DWORD dwBytes = 0;
@@ -69,13 +69,13 @@ T CSocketHandlePrefix::getWSAIoctl(GUID& guid) const
 	return p;
 }
 //==============================================================================
-SOCKET CSocketHandlePrefix::getSocket() const noexcept
+SOCKET CSocketHandle::getSocket() const noexcept
 {
 	#pragma warning (disable: 26493)
 	return (SOCKET)getHandle();
 }
 //==============================================================================
-std::error_code CSocketHandlePrefix::setKeepAlive(
+std::error_code CSocketHandle::setKeepAlive(
 	const bool bValue) const noexcept
 {
 	const int yes = bValue ? 1 : 0;
@@ -92,12 +92,12 @@ std::error_code CSocketHandlePrefix::setKeepAlive(
 	return std::error_code();
 }
 //==============================================================================
-CSocketHandlePrefix::operator SOCKET() const noexcept
+CSocketHandle::operator SOCKET() const noexcept
 {
 	return getSocket();
 }
 //==============================================================================
-CSocketHandlePrefix& CSocketHandlePrefix::operator=(
+CSocketHandle& CSocketHandle::operator=(
 	const SOCKET socket)
 {
 	#pragma warning (disable: 26493)
@@ -117,21 +117,21 @@ CSocketHandlePrefix& CSocketHandlePrefix::operator=(
 	return *this;
 }
 //==============================================================================
-CSocketHandlePrefix& CSocketHandlePrefix::operator=(
+CSocketHandle& CSocketHandle::operator=(
 	const CSocketHandle& handle) noexcept
 {
 	CHandle::operator=(handle);
 	return *this;;
 }
 //==============================================================================
-CSocketHandlePrefix& CSocketHandlePrefix::operator=(
+CSocketHandle& CSocketHandle::operator=(
 	CSocketHandle&& handle) noexcept
 {
 	CHandle::operator=(std::move(handle));
 	return *this;
 }
 //==============================================================================
-CSocketHandlePrefix::~CSocketHandle()
+CSocketHandle::~CSocketHandle()
 {
 	close();
 }

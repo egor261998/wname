@@ -4,7 +4,7 @@ _WNAME_BEGIN
 namespace io::iocp
 {
 	/** реализация механизма Iocp */
-	class CIocp final : protected misc::CCounter
+	class WNAME CIocp final : protected misc::CCounter
 	{
 	#pragma region Public_Inner
 	public:
@@ -36,8 +36,8 @@ namespace io::iocp
 		* инициализация Iocp.
 		* @param pLogger - объект логирования.
 		*/
-		WNAME CIocp(
-			const std::shared_ptr<logger::ILogger> pLogger = nullptr) noexcept(false);
+		CIocp(
+			const std::shared_ptr<logger::ILogger> pLogger) noexcept(false);
 	//==========================================================================
 		/**
 		* инициализация Iocp.
@@ -45,7 +45,7 @@ namespace io::iocp
 		* @param maxThreadCount - максимальное кол-во нитей в пуле.
 		* @param pLogger - объект логирования.
 		*/
-		WNAME CIocp(
+		CIocp(
 			const DWORD minThreadCount = 1,
 			const DWORD maxThreadCount = std::thread::hardware_concurrency(),
 			const std::shared_ptr<logger::ILogger> pLogger = nullptr) noexcept(false);
@@ -55,7 +55,7 @@ namespace io::iocp
 		* @param hHandle - привязываемый дескриптор.
 		* @param ulpCompletionKey - ключ завершения.
 		*/
-		WNAME void bind(
+		void bind(
 			const HANDLE hHandle,
 			const ULONG_PTR ulCompletionKey = 0);
 	//==========================================================================
@@ -65,7 +65,7 @@ namespace io::iocp
 		* @param fComplitionRoutine - функция завершения асинхронной операции.
 		* @return - асинхронная операция.
 		*/
-		WNAME CAsyncOperation* getAsyncOperation(
+		CAsyncOperation* getAsyncOperation(
 			const PVOID pCompletionRoutineContext = nullptr,
 			const FAsyncCompletion fComplitionRoutine = nullptr);
 	//==========================================================================
@@ -75,7 +75,7 @@ namespace io::iocp
 		* @param fComplitionRoutine - функция завершения асинхронной операции.
 		* @param ulComplitionKey - ключ заверения.
 		*/
-		WNAME void transit(
+		void transit(
 			const PVOID pCompletionRoutineContext,
 			const FAsyncCompletion fComplitionRoutine,
 			const ULONG_PTR ulComplitionKey = 0);
@@ -87,7 +87,7 @@ namespace io::iocp
 		* @param ec - код ошибки.
 		* @param messageFunction - функция из которой вызвалось сообщение.
 		*/
-		WNAME void log(
+		void log(
 			const logger::EMessageType eMessageType,
 			const std::exception& ex,
 			const std::error_code ec = std::error_code(),
@@ -100,7 +100,7 @@ namespace io::iocp
 		* @param ec - код ошибки.
 		* @param messageFunction - функция из которой вызвалось сообщение.
 		*/
-		WNAME void log(
+		void log(
 			const logger::EMessageType eMessageType,
 			const wchar_t* const message,
 			const std::error_code ec = std::error_code(),
@@ -110,17 +110,19 @@ namespace io::iocp
 		* перегрузка оператора пере присвоения для типа HANDLE.
 		* @rerutn - описатель Iocp.
 		*/
-		WNAME operator HANDLE() noexcept;
+		operator HANDLE() noexcept;
 	//==========================================================================
 		/**
-		* закончить работу.
+		* закончить работу и дождаться всех асинхронных операций.
+		* @param bIsWait - признак ожидания.
 		*/
-		void release() noexcept override;
+		void release(
+			const bool bIsWait) noexcept override;
 	//==========================================================================
 		/** 
 		* деструктор механизма IOCP 
 		*/
-		WNAME ~CIocp();
+		~CIocp();
 	//==========================================================================
 		CIocp(const CIocp&) = delete;
 		CIocp(CIocp&&) = delete;
@@ -136,7 +138,7 @@ namespace io::iocp
 		* обработчик асинхронных операций текущего порта ввода/вывода.
 		* @param pWorkerThread - объект нити обработчика.
 		*/
-		WNAME void workerThread(
+		void workerThread(
 			const std::shared_ptr<CThreadPoolWorker> pWorkerThread) noexcept;
 	//==========================================================================
 	#pragma endregion

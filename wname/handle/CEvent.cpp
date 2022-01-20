@@ -1,9 +1,9 @@
 #include "../stdafx.h"
 
-using CEventPrefix = wname::handle::CEvent;
+using wname::handle::CEvent;
 
 //==============================================================================
-CEventPrefix::CEvent() noexcept(false)
+CEvent::CEvent() noexcept(false)
 {
 	/** создаем событие */
 	const auto hObject = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -21,25 +21,25 @@ CEventPrefix::CEvent() noexcept(false)
 	if (!isValid())
 	{
 		throw std::runtime_error(
-			"Create event with error: " + std::to_string(GetLastError()));
+			"Create event failed with error: " + std::to_string(GetLastError()));
 	}
 }
 //==============================================================================
-CEventPrefix::CEvent(
-	const CEvent& handle) noexcept
-	:CHandle(handle)
+CEvent::CEvent(
+	const CEvent& handle) noexcept :
+	CHandle(handle)
 {
 		
 }
 //==============================================================================
-CEventPrefix::CEvent(
-	CEvent&& handle) noexcept
-	:CHandle(std::move(handle))
+CEvent::CEvent(
+	CEvent&& handle) noexcept :
+	CHandle(std::move(handle))
 {
 	
 }
 //==============================================================================
-std::error_code CEventPrefix::notify() const noexcept
+std::error_code CEvent::notify() const noexcept
 {
 	const auto hObject = getHandle();
 
@@ -48,7 +48,7 @@ std::error_code CEventPrefix::notify() const noexcept
 		std::system_category());
 }
 //==============================================================================
-std::error_code CEventPrefix::wait(
+std::error_code CEvent::wait(
 	const DWORD dwMilliseconds) const noexcept
 {
 	const auto hObject = getHandle();
@@ -58,7 +58,7 @@ std::error_code CEventPrefix::wait(
 		std::system_category());
 }
 //==============================================================================
-std::error_code CEventPrefix::cancel() const noexcept
+std::error_code CEvent::cancel() const noexcept
 {
 	const auto hObject = getHandle();
 
@@ -67,21 +67,21 @@ std::error_code CEventPrefix::cancel() const noexcept
 		std::system_category());
 }
 //==============================================================================
-CEventPrefix& CEventPrefix::operator=(
+CEvent& CEvent::operator=(
 	const CEvent& handle) noexcept
 {
 	CHandle::operator=(handle);
 	return *this;
 }
 //==============================================================================
-CEventPrefix& CEventPrefix::operator=(
+CEvent& CEvent::operator=(
 	CEvent&& handle) noexcept
 {
 	CHandle::operator=(std::move(handle));
 	return *this;
 }
 //==============================================================================
-CEventPrefix::~CEvent()
+CEvent::~CEvent()
 {
 	close();
 }

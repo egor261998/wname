@@ -4,11 +4,11 @@ _WNAME_BEGIN
 namespace misc
 {
 	/** элемент потокобезопасного списка */
-	class CInterlockedItem : public SLIST_ENTRY {};
+	class WNAME CInterlockedItem : public SLIST_ENTRY { };
 
 	/** потокобезопасный односвязный список */
 	template <class T>
-	class CInterlockedList final
+	class WNAME CInterlockedList final
 	{
 	#pragma region Public_Method
 	public:
@@ -16,18 +16,17 @@ namespace misc
 		/**
 		* конструктор по умолчанию.
 		*/
-		WNAME CInterlockedList() noexcept
+		CInterlockedList() noexcept
 		{
 			InitializeSListHead(&_listHead);
 		}
 	//==========================================================================
 		/**
 		* получить количество элементов в списке.
-		* @return - количество элементов.
-		*
 		* возвращаемое значение подвержено мгновенному изменению.
+		* @return - количество элементов.
 		*/
-		WNAME size_t size() const noexcept
+		size_t size() const noexcept
 		{
 			return _nCount;
 		}
@@ -35,7 +34,7 @@ namespace misc
 		/**
 		* очистить список.
 		*/
-		WNAME void clear() noexcept
+		void clear() noexcept
 		{
 			while (true)
 			{
@@ -50,7 +49,7 @@ namespace misc
 		* извлечь первый элемент списка.
 		* @return - элемент списка.
 		*/
-		WNAME T* const pop() noexcept
+		T* const pop() noexcept
 		{
 			#pragma warning (disable: 26481)
 			auto pItemEntry = InterlockedPopEntrySList(&_listHead);
@@ -67,7 +66,7 @@ namespace misc
 		* извлечь первый элемент списка как умный указатель.
 		* @return - элемент списка как умный указатель.
 		*/
-		WNAME std::unique_ptr<T> popEx() noexcept
+		std::unique_ptr<T> popEx() noexcept
 		{
 			return std::unique_ptr<T>(pop());
 		}
@@ -75,36 +74,30 @@ namespace misc
 		/**
 		* вставить элемент в начало списка.
 		* @param pInterlockedItem - новый элемент списка.
-		* @return - новый элемент списка.
 		*/
-		WNAME T* const push(
+		void push(
 			T* const pInterlockedItem) noexcept
 		{
-			PSLIST_ENTRY pItem = pInterlockedItem;
-
 			InterlockedPushEntrySList(&_listHead,
-				pItem);
+				pInterlockedItem);
 
 			_nCount++;
-
-			return pInterlockedItem;
 		}
 	//==========================================================================
 		/**
 		* вставить элемент в начало списка из умного указателя.
 		* @param pInterlockedItem - новый элемент списка как умный указатель.
-		* @return - новый элемент списка.
 		*/
-		WNAME T* const pushEx(
+		void pushEx(
 			std::unique_ptr<T> pInterlockedItem) noexcept
 		{
-			return push(pInterlockedItem.release());
+			push(pInterlockedItem.release());
 		}
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME ~CInterlockedList()
+		~CInterlockedList()
 		{
 			clear();
 		}

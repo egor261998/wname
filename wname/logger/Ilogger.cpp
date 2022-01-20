@@ -1,14 +1,11 @@
 #include "../stdafx.h"
 
-using IloggerPrefix = wname::logger::ILogger;
-using EMessageTypePrefix = wname::logger::EMessageType;
-
-/** определяем количество попыток логирования */
-std::atomic_long IloggerPrefix::_uRepeatLog = 3;
+using wname::logger::ILogger;
+using wname::logger::EMessageType;
 
 //==============================================================================
-void IloggerPrefix::log(
-	const EMessageTypePrefix eMessageType,
+void ILogger::log(
+	const EMessageType eMessageType,
 	const std::exception& ex,
 	const std::error_code ec,
 	const char* const szMessageFunction) const noexcept
@@ -23,13 +20,13 @@ void IloggerPrefix::log(
 	}	
 }
 //==============================================================================
-void IloggerPrefix::log(
-	const EMessageTypePrefix eMessageType,
+void ILogger::log(
+	const EMessageType eMessageType,
 	const char* const szMessage,
 	const std::error_code ec,
 	const char* const szMessageFunction) const noexcept
 {
-	for (long i = 0; i < _uRepeatLog; i++)
+	for (size_t i = 0; i < _nRepeatLog; i++)
 	{
 		try
 		{
@@ -49,13 +46,13 @@ void IloggerPrefix::log(
 	}
 }
 //==============================================================================
-void IloggerPrefix::log(
-	const EMessageTypePrefix eMessageType,
+void ILogger::log(
+	const EMessageType eMessageType,
 	const std::string strMessage,
 	const std::error_code ec,
 	const char* const szMessageFunction) const noexcept
 {
-	for (long i = 0; i < _uRepeatLog; i++)
+	for (size_t i = 0; i < _nRepeatLog; i++)
 	{
 		try
 		{
@@ -75,17 +72,18 @@ void IloggerPrefix::log(
 	}
 }
 //==============================================================================
-void IloggerPrefix::log(
-	const EMessageTypePrefix eMessageType,
+void ILogger::log(
+	const EMessageType eMessageType,
 	const wchar_t* const wszMessage,
 	const std::error_code ec,
 	const char* const szMessageFunction) const noexcept
 {
-	for (long i = 0; i < _uRepeatLog; i++)
+	for (size_t i = 0; i < _nRepeatLog; i++)
 	{
 		try
 		{
-			std::wstring wStrMessage(wszMessage != nullptr ? wszMessage : L"UnknownMessage");
+			std::wstring wStrMessage(wszMessage != nullptr ? 
+				wszMessage : L"UnknownMessage");
 			log(eMessageType, wStrMessage, ec, szMessageFunction);
 
 			/** логируем дальше */
@@ -101,22 +99,27 @@ void IloggerPrefix::log(
 	}
 }
 //==============================================================================
-void IloggerPrefix::log(
-	const EMessageTypePrefix eMessageType,
+void ILogger::log(
+	const EMessageType eMessageType,
 	const std::wstring wStrMessage,
 	const std::error_code ec,
 	const char* const szMessageFunction) const noexcept
 {
 	/** конечная функция логирования */
-	for (long i = 0; i < _uRepeatLog; i++)
+	for (size_t i = 0; i < _nRepeatLog; i++)
 	{
 		try
 		{
-			std::string strMessageFunction(szMessageFunction != nullptr ? szMessageFunction : "UnknownFunction");
-			std::wstring wStrMessageFunction(strMessageFunction.begin(), strMessageFunction.end());
+			std::string strMessageFunction(
+				szMessageFunction != nullptr ? 
+				szMessageFunction : "UnknownFunction");
+			std::wstring wStrMessageFunction(
+				strMessageFunction.begin(), 
+				strMessageFunction.end());
 
 			/** сборка сообщения */
-			auto wStr = assembleMessage(eMessageType, wStrMessage, ec, wStrMessageFunction);
+			auto wStr = assembleMessage(
+				eMessageType, wStrMessage, ec, wStrMessageFunction);
 
 			/** логирование */
 			logWrite(wStr);
@@ -134,7 +137,7 @@ void IloggerPrefix::log(
 	}
 }
 //==============================================================================
-std::wstring IloggerPrefix::assembleMessage(
+std::wstring ILogger::assembleMessage(
 	const EMessageType eMessageType,
 	const std::wstring& wStrMessage,
 	const std::error_code& ec,

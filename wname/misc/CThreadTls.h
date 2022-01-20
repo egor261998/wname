@@ -5,16 +5,17 @@ namespace misc
 {
 	/** TLS */
 	template <class T>
-	class CThreadTls final
+	class WNAME CThreadTls final
 	{
 	#pragma region Public_Method
-	//==========================================================================
 	public:
+	//==========================================================================
 		/**
 		* конструктор по умолчанию.
 		*/
-		WNAME CThreadTls() noexcept(false)
-		{
+		CThreadTls() noexcept(false)
+		{		
+			/** выделяем новый индекс */
 			_dwTlsIndex = TlsAlloc();
 			if (_dwTlsIndex == TLS_OUT_OF_INDEXES)
 			{
@@ -27,9 +28,10 @@ namespace misc
 		* конструктор копирования.
 		* @param tls - объект копирования.
 		*/
-		WNAME CThreadTls(
+		CThreadTls(
 			const CThreadTls& tls) noexcept
 		{
+			/** переходим к оператору копирования */
 			*this = tls;
 		}
 	//==========================================================================
@@ -37,9 +39,10 @@ namespace misc
 		* конструктор перемещения.
 		* @param tls - объект перемещения.
 		*/
-		WNAME CThreadTls(
+		CThreadTls(
 			CThreadTls&& tls) noexcept
 		{
+			/** переходим к оператору перемещения */
 			*this = std::move(tls);
 		}
 	//==========================================================================
@@ -48,7 +51,7 @@ namespace misc
 		* @param p - значение.
 		* @return - результат установки.
 		*/
-		WNAME bool setValue(T* p) noexcept
+		bool setValue(T* p) noexcept
 		{
 			return TlsSetValue(_dwTlsIndex, static_cast<PVOID>(p));
 		}
@@ -57,7 +60,7 @@ namespace misc
 		* получить значение.
 		* @return - значение.
 		*/
-		WNAME T* getValue() const noexcept
+		T* getValue() const noexcept
 		{
 			return static_cast<T*>(TlsGetValue(_dwTlsIndex));
 		}
@@ -67,10 +70,11 @@ namespace misc
 		* @param tls - копируемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME CThreadTls& operator=(
+		CThreadTls& operator=(
 			const CThreadTls& tls) noexcept
 		{
 			_dwTlsIndex = tls._dwTlsIndex;
+			return *this;
 		}
 	//==========================================================================
 		/**
@@ -78,19 +82,26 @@ namespace misc
 		* @param tls - перемещаемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME CThreadTls& operator=(
+		CThreadTls& operator=(
 			CThreadTls&& tls) noexcept
 		{
 			_dwTlsIndex = tls._dwTlsIndex;
 			tls._dwTlsIndex = TLS_OUT_OF_INDEXES;
+			return *this;
 		}
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME ~CThreadTls()
+		~CThreadTls()
 		{
-			TlsFree(_dwTlsIndex);
+			if (_dwTlsIndex == TLS_OUT_OF_INDEXES)
+			{
+				/** индекса нет, высвобождать нечего */
+				return;
+			}
+
+			TlsFree(_dwTlsIndex);		
 		}
 	//==========================================================================
 	#pragma endregion
@@ -98,7 +109,7 @@ namespace misc
 	#pragma region Private_Data
 	private:
 	//==========================================================================
-		/** присвоенный индекс */
+		/** индекс */
 		DWORD _dwTlsIndex = TLS_OUT_OF_INDEXES;
 	//==========================================================================
 	#pragma endregion

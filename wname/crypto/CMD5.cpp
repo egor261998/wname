@@ -1,6 +1,6 @@
 #include "../stdafx.h"
 
-using CMD5Prefix = wname::crypto::CMD5;
+using wname::crypto::CMD5;
 
 #pragma warning(disable: 26481 26482 26446 26493)
 
@@ -55,31 +55,31 @@ using CMD5Prefix = wname::crypto::CMD5;
 }
 
 //==============================================================================
-CMD5Prefix::CMD5() noexcept
+CMD5::CMD5() noexcept
 {
 	clear();
 }
 //==============================================================================
-CMD5Prefix::CMD5(
+CMD5::CMD5(
 	const CMD5& md5) noexcept
 {
 	*this = md5;
 }
 //==============================================================================
-CMD5Prefix::CMD5(
+CMD5::CMD5(
 	CMD5&& md5) noexcept
 {
 	*this = std::move(md5);
 }
 //==============================================================================
-CMD5Prefix::CMD5(
+CMD5::CMD5(
 	const BYTE* const hash) noexcept
 	:CMD5()
 {
 	memcpy(&_hash[0], hash, 16);
 }
 //==============================================================================
-void CMD5Prefix::update(
+void CMD5::update(
 	const BYTE* input,
 	DWORD inputLen) noexcept
 {
@@ -109,7 +109,7 @@ void CMD5Prefix::update(
 	memcpy(&_ctx.buffer[index], &input[i], inputLen - i);
 }
 //==============================================================================
-const BYTE* const CMD5Prefix::final() noexcept
+const BYTE* const CMD5::final() noexcept
 {
 	static BYTE PADDING[64] = {
 		0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -138,7 +138,7 @@ const BYTE* const CMD5Prefix::final() noexcept
 	return getHash();
 }
 //==============================================================================
-void CMD5Prefix::clear() noexcept
+void CMD5::clear() noexcept
 {
 	memset(&_ctx, 0, sizeof(_ctx));
 
@@ -151,12 +151,12 @@ void CMD5Prefix::clear() noexcept
 	_ctx.state[3] = 0x10325476;
 }
 //==============================================================================
-const BYTE* const CMD5Prefix::getHash() const noexcept
+const BYTE* const CMD5::getHash() const noexcept
 {
 	return &_hash[0];
 }
 //==============================================================================
-CMD5Prefix& CMD5Prefix::operator=(
+CMD5& CMD5::operator=(
 	const CMD5& md5) noexcept
 {
 	memcpy(&_ctx, &md5._ctx, sizeof(_ctx));
@@ -165,7 +165,7 @@ CMD5Prefix& CMD5Prefix::operator=(
 	return *this;
 }
 //==============================================================================
-CMD5Prefix& CMD5Prefix::operator=(
+CMD5& CMD5::operator=(
 	CMD5&& md5) noexcept
 {
 	memcpy(&_ctx, &md5._ctx, sizeof(_ctx));
@@ -176,19 +176,19 @@ CMD5Prefix& CMD5Prefix::operator=(
 	return *this;
 }
 //==============================================================================
-bool CMD5Prefix::operator==(
+bool CMD5::operator==(
 	const CMD5& md5) noexcept
 {
 	return memcmp(&_ctx, &md5._ctx, sizeof(_ctx)) == 0;
 }
 //==============================================================================
-bool CMD5Prefix::operator!=(
+bool CMD5::operator!=(
 	const CMD5& md5) noexcept
 {
 	return !(*this == md5);
 }
 //==============================================================================
-void CMD5Prefix::transform(
+void CMD5::transform(
 	DWORD* state,
 	const BYTE* const block) noexcept
 {
@@ -277,7 +277,7 @@ void CMD5Prefix::transform(
 	memset(&x[0], 0, sizeof(x));
 }
 //==============================================================================
-void CMD5Prefix::encode(
+void CMD5::encode(
 	BYTE* output,
 	const DWORD* const input,
 	const DWORD len) noexcept
@@ -293,7 +293,7 @@ void CMD5Prefix::encode(
 	}
 }
 //==============================================================================
-void CMD5Prefix::decode(
+void CMD5::decode(
 	DWORD* output,
 	const BYTE* const input,
 	const DWORD len) noexcept

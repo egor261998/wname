@@ -3,7 +3,7 @@
 _WNAME_BEGIN
 namespace crypto
 {
-	class CCrc32 final
+	class WNAME CCrc32 final
 	{
 	#pragma region Public_Method
 	public:
@@ -11,20 +11,20 @@ namespace crypto
 		/**
 		* конструктор по-умолчанию.
 		*/
-		WNAME CCrc32() noexcept;
+		CCrc32() noexcept;
 	//==========================================================================
 		/**
 		* конструктор из свертки.
 		* @param hash - копируемый объект.
 		*/
-		WNAME CCrc32(
+		CCrc32(
 			const DWORD hash) noexcept;
 	//==========================================================================
 		/**
 		* конструктор копирования.
 		* @param crc32 - копируемый объект.
 		*/
-		WNAME CCrc32(
+		CCrc32(
 			const CCrc32& crc32) noexcept;
 	//==========================================================================
 		/**
@@ -32,7 +32,7 @@ namespace crypto
 		* @param crc32 - перемещаемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME CCrc32(
+		CCrc32(
 			CCrc32&& crc32) noexcept;
 	//==========================================================================
 		/**
@@ -40,27 +40,27 @@ namespace crypto
 		* @param input - входной буфер.
 		* @param inputLen - размер буфера.
 		*/
-		WNAME void update(
+		void update(
 			const BYTE* input,
 			size_t inputLen) noexcept;
 	//==========================================================================
 		/**
 		* очистка.
 		*/
-		WNAME void clear() noexcept;
+		void clear() noexcept;
 	//==========================================================================
 		/**
 		* получить свертку.
 		* @return - указатель на свертку.
 		*/
-		WNAME DWORD getHash() const noexcept;
+		DWORD getHash() const noexcept;
 	//==========================================================================
 		/**
 		* оператор копирования.
 		* @param crc32 - копируемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME CCrc32& operator=(
+		CCrc32& operator=(
 			const CCrc32& crc32) noexcept;
 	//==========================================================================
 		/**
@@ -68,7 +68,7 @@ namespace crypto
 		* @param crc32 - перемещаемый объект.
 		* @return - текущий объект.
 		*/
-		WNAME CCrc32& operator=(
+		CCrc32& operator=(
 			CCrc32&& crc32) noexcept;
 	//==========================================================================
 		/**
@@ -76,7 +76,7 @@ namespace crypto
 		* @param crc32 - объект.
 		* @return - результат сравнения.
 		*/
-		WNAME bool operator==(
+		bool operator==(
 			const CCrc32& crc32) noexcept;
 	//==========================================================================
 		/**
@@ -84,13 +84,13 @@ namespace crypto
 		* @param crc32 - объект.
 		* @return - результат сравнения.
 		*/
-		WNAME bool operator!=(
+		bool operator!=(
 			const CCrc32& crc32) noexcept;
 	//==========================================================================
 		/**
 		* деструктор.
 		*/
-		WNAME ~CCrc32() = default;
+		~CCrc32() = default;
 	//==========================================================================
 	#pragma endregion
 
