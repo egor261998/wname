@@ -621,7 +621,14 @@ void CDirectory::notifyAcceptCompilteHandler(
 	{
 
 		if (const auto ec = startNotify(); ec)
+		{
+			if (ec.value() == ERROR_OPERATION_ABORTED)
+			{
+				/** просто выходим */
+				return;
+			}
 			throw std::runtime_error("Start Notify Failed: " + ec.message());
+		}
 
 		do
 		{
